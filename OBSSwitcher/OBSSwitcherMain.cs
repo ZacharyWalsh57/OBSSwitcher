@@ -47,7 +47,7 @@ namespace OBSSwitcher
             int LastMoveIndex = -1;
 
             // Loop only while we have not key pressed and we can read a key.
-            while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Escape))
+            while (!(Console.KeyAvailable && (Console.ReadKey(true).Key == ConsoleKey.Escape)))
             {
                 // Get new sleep time and wait.
                 if (!int.TryParse(ConfigurationManager.AppSettings.Get("DelayTime"), out int DelayTime)) { DelayTime = 1000; }
