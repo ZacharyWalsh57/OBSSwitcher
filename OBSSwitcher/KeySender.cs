@@ -19,7 +19,8 @@ namespace OBSSwitcher
         public string MainPaneKey { get; set; }
         public string Pane1HotKey { get; set; }
         public string Pane2HotKey { get; set; }
-        public string Pane3HotKey{ get; set; }
+        public string Pane3HotKey { get; set; }
+        public string DebugWindowHotKey {get; set;}
 
         [DllImport("USER32.DLL")]
         static extern int SetForegroundWindow(IntPtr point);
@@ -33,6 +34,7 @@ namespace OBSSwitcher
             Pane1HotKey = ConfigurationManager.AppSettings.Get("Pane1HotKey");
             Pane2HotKey = ConfigurationManager.AppSettings.Get("Pane2HotKey");
             Pane3HotKey = ConfigurationManager.AppSettings.Get("Pane3HotKey");
+            DebugWindowHotKey = ConfigurationManager.AppSettings.Get("DebugWindowHotKey");
         }
 
         private void BringToFront(string NameOfWindow)
@@ -79,6 +81,15 @@ namespace OBSSwitcher
                     BringToFront(ProcName);
 
                     SendKeys.SendWait(ModString + Pane3HotKey);
+                    System.Threading.Thread.Sleep(50);
+                    SendKeys.SendWait(ModString + Pane3HotKey);
+
+                    break;
+
+                case (4):
+                    BringToFront(ProcName);
+
+                    SendKeys.SendWait(ModString + DebugWindowHotKey);
                     System.Threading.Thread.Sleep(50);
                     SendKeys.SendWait(ModString + Pane3HotKey);
 

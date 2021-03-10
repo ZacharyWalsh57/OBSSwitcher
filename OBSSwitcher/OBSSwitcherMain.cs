@@ -9,12 +9,27 @@ namespace OBSSwitcher
 {
     public class OBSSwitcherMain
     {
+        public static bool UseDebugKey = false;
+
         public static void Main(string[] args)
         {
             if (!CheckArgsFilled()) { return; }
             while (true)
             {
                 RunSwitcher();
+
+                var XAndYPos = new MouseCords();
+                WriteMouseInfo(XAndYPos);
+
+                Console.Write("[");
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write("SWITCH TO EDITOR ONE VIEW");
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine("]");
+
+                KeySender Sender = new KeySender();
+                Sender.SwitchView(0);
+
                 Console.Clear();
             }            
         }
@@ -41,80 +56,77 @@ namespace OBSSwitcher
                 // Get/Write cords start and then tack on the movement type.
                 var XAndYPos = new MouseCords();
 
-                // Y Value is out of normal bounds.
-                if (XAndYPos.PosY < 0)
+                // If Y invalid continue.
+                if (XAndYPos.PosY < 0) { continue; }
+
+                // Pane 1 switch. 
+                if (XAndYPos.PosX >= PaneSizes.PaneOneValues.Item1 && XAndYPos.PosX <= PaneSizes.PaneOneValues.Item2)
                 {
-                    if (LastMoveIndex == 0) { continue; }
+                    if (LastMoveIndex == 1) { continue; }
 
                     WriteMouseInfo(XAndYPos);
 
                     Console.Write("[");
-                    Console.ForegroundColor = ConsoleColor.Cyan;
-                    Console.Write("SWITCH TO MAIN EDITOR VIEW");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.Write("SWITCH TO EDITOR ONE VIEW");
                     Console.ForegroundColor = ConsoleColor.White;
                     Console.WriteLine("]");
 
-                    LastMoveIndex = 0;
-                    Sender.SwitchView(0);
+                    LastMoveIndex = 1;
+                    Sender.SwitchView(1);
                     continue;
                 }
 
-                // If Y Value is real and in range here.
+                // Pane 2 switch. 
+                if (XAndYPos.PosX >= PaneSizes.PaneTwoValues.Item1 && XAndYPos.PosX <= PaneSizes.PaneTwoValues.Item2)
+                {
+                    if (LastMoveIndex == 2) { continue; }
+
+                    WriteMouseInfo(XAndYPos);
+
+                    Console.Write("[");
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    Console.Write("SWITCH TO EDITOR TWO VIEW");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine("]");
+
+                    LastMoveIndex = 2;
+                    Sender.SwitchView(2);
+                    continue;
+                }
+
+                // Pane 3 switch. 
+                if (XAndYPos.PosX >= PaneSizes.PaneThreeValues.Item1 && XAndYPos.PosX <= PaneSizes.PaneThreeValues.Item2)
+                {
+                    if (LastMoveIndex == 3) { continue; }
+
+                    WriteMouseInfo(XAndYPos);
+
+                    Console.Write("[");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.Write("SWITCH TO EDITOR THREE VIEW");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine("]");
+
+                    LastMoveIndex = 3;
+                    Sender.SwitchView(3);
+                }
+
+                // Pane 4 switch. 
                 else
                 {
-                    // Pane 1 switch. 
-                    if (XAndYPos.PosX >= PaneSizes.PaneOneValues.Item1 && XAndYPos.PosX <= PaneSizes.PaneOneValues.Item2)
-                    {
-                        if (LastMoveIndex == 1) { continue; }
+                    if (LastMoveIndex == 4) { continue; }
 
-                        WriteMouseInfo(XAndYPos);
+                    WriteMouseInfo(XAndYPos);
 
-                        Console.Write("[");
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write("SWITCH TO EDITOR ONE VIEW");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("]");
+                    Console.Write("[");
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.Write("SWITCH TO DEBUG VIEW");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    Console.WriteLine("]");
 
-                        LastMoveIndex = 1;
-                        Sender.SwitchView(1);
-                        continue;
-                    }
-
-                    // Pane 2 switch. 
-                    else if (XAndYPos.PosX >= PaneSizes.PaneTwoValues.Item1 && XAndYPos.PosX <= PaneSizes.PaneTwoValues.Item2)
-                    {
-                        if (LastMoveIndex == 2) { continue; }
-
-                        WriteMouseInfo(XAndYPos);
-
-                        Console.Write("[");
-                        Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.Write("SWITCH TO EDITOR TWO VIEW");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("]");
-
-                        LastMoveIndex = 2;
-                        Sender.SwitchView(2);
-                        continue;
-                    }
-
-                    // Pane 3 switch. 
-                    else if (XAndYPos.PosX >= PaneSizes.PaneThreeValues.Item1 && XAndYPos.PosX <= PaneSizes.PaneThreeValues.Item2)
-                    {
-                        if (LastMoveIndex == 3) { continue; }
-
-                        WriteMouseInfo(XAndYPos);
-
-                        Console.Write("[");
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.Write("SWITCH TO EDITOR THREE VIEW");
-                        Console.ForegroundColor = ConsoleColor.White;
-                        Console.WriteLine("]");
-
-                        LastMoveIndex = 3;
-                        Sender.SwitchView(3);
-                        continue;
-                    }
+                    LastMoveIndex = 4;
+                    Sender.SwitchView(4);
                 }
             }
         }
@@ -130,6 +142,7 @@ namespace OBSSwitcher
                 "Pane1HotKey",
                 "Pane2HotKey",
                 "Pane3HotKey",
+                "DebugViewHotKey",
 
                 "Pane1SizeValues",
                 "Pane2SizeValues",
@@ -156,28 +169,68 @@ namespace OBSSwitcher
         private static void WriteConfigInfo(PaneSizeValues PaneSize, KeySender Sender)
         {
             // Sep Line is 45 Chars
+            string UsingDebugString = "OFF";
+            if (UseDebugKey) { UsingDebugString = "ON "; } 
 
             Console.Clear();
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine("----------------------------------------------");
-            Console.WriteLine("     Configuration Info For This Session     |");
-            Console.WriteLine("----------------------------------------------");
-            Console.WriteLine("{0,0} {1,37}", "Hot Keys", "|");
-            Console.WriteLine("{0,-10} {1,5} {2,11}", "\\__ Main:   ", Sender.ModStringExpanded + " + " + Sender.MainPaneKey, "|");
-            Console.WriteLine("{0,-10} {1,5} {2,11}", "\\__ Pane 1: ", Sender.ModStringExpanded + " + " + Sender.Pane1HotKey, "|");
-            Console.WriteLine("{0,-10} {1,5} {2,11}", "\\__ Pane 2: ", Sender.ModStringExpanded + " + " + Sender.Pane2HotKey, "|");
-            Console.WriteLine("{0,-10} {1,5} {2,11}", "\\__ Pane 3: ", Sender.ModStringExpanded + " + " + Sender.Pane3HotKey, "|");
-            Console.WriteLine("----------------------------------------------");
-            Console.WriteLine("{0,0} {1,35}", "Pane Sizes", "|");
-            Console.WriteLine("{0,-10} {1,5} {2,26}", "\\__ Pane 1: ", (PaneSize.PaneOneValues.Item1 + "," + PaneSize.PaneOneValues.Item2), "|");
-            Console.WriteLine("{0,-10} {1,5} {2,23}", "\\__ Pane 2: ", (PaneSize.PaneTwoValues.Item1 + "," + PaneSize.PaneTwoValues.Item2), "|");
-            Console.WriteLine("{0,-10} {1,5} {2,23}", "\\__ Pane 3: ", (PaneSize.PaneThreeValues.Item1 + "," + PaneSize.PaneThreeValues.Item2), "|");
-            Console.WriteLine("----------------------------------------------");
-            Console.WriteLine("      Press ESCAPE at any time to pause      |");
-            Console.WriteLine("          Press ENTER to continue            |");
-            Console.WriteLine("----------------------------------------------");
-            Console.ReadLine();
-            Console.Clear();
+            Console.WriteLine("+---------------------------------------------+");
+            Console.WriteLine("|     Configuration Info For This Session     |");
+            Console.WriteLine("|---------------------------------------------|");
+            Console.WriteLine("|{0,0} {1,37}", "Hot Keys", "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,11}", "\\__ Main:   ", Sender.ModStringExpanded + " + " + Sender.MainPaneKey, "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,11}", "\\__ Pane 1: ", Sender.ModStringExpanded + " + " + Sender.Pane1HotKey, "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,11}", "\\__ Pane 2: ", Sender.ModStringExpanded + " + " + Sender.Pane2HotKey, "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,11}", "\\__ Pane 3: ", Sender.ModStringExpanded + " + " + Sender.Pane3HotKey, "|");
+
+            if (UseDebugKey)
+            {
+                Console.Write("|\\__ ");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.Write("{0,-7} {1,5}", "Debug:  ", Sender.ModStringExpanded + " + " + Sender.DebugWindowHotKey);
+                Console.ForegroundColor = ConsoleColor.White;
+                Console.WriteLine("{0,12}", "|");
+            }
+
+            Console.WriteLine("|---------------------------------------------|");
+            Console.WriteLine("|{0,0} {1,35}", "Pane Sizes", "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,26}", "\\__ Pane 1: ", (PaneSize.PaneOneValues.Item1 + "," + PaneSize.PaneOneValues.Item2), "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,23}", "\\__ Pane 2: ", (PaneSize.PaneTwoValues.Item1 + "," + PaneSize.PaneTwoValues.Item2), "|");
+            Console.WriteLine("|{0,-10} {1,5} {2,23}", "\\__ Pane 3: ", (PaneSize.PaneThreeValues.Item1 + "," + PaneSize.PaneThreeValues.Item2), "|");
+            Console.WriteLine("|---------------------------------------------|");
+            Console.WriteLine("|     Press 'D' at any time to toggle the     |");
+            Console.WriteLine("|       Debug Output HotKey On and Off        |");
+
+            Console.Write("|              Currently: ");
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"{UsingDebugString}                 ");
+            Console.ForegroundColor = ConsoleColor.White;
+            Console.WriteLine("|");
+
+            Console.WriteLine("|---------------------------------------------|");
+            Console.WriteLine("|      Press ESCAPE at any time to pause      |");
+            Console.WriteLine("|          Press ENTER to continue            |");
+            Console.WriteLine("+---------------------------------------------+");
+
+            while (true)
+            {
+                if (!Console.KeyAvailable) { continue; }
+                var NextKey = Console.ReadKey(true);
+
+                if (NextKey.Key == ConsoleKey.Enter)
+                {
+                    Console.Clear();
+                    return;
+                }
+
+                if (NextKey.Key == ConsoleKey.D)
+                {
+                    UseDebugKey = !UseDebugKey;
+                    WriteConfigInfo(PaneSize, Sender);
+
+                    return;
+                }
+            }
         }
         private static void WriteMouseInfo(MouseCords XAndYPos)
         {
