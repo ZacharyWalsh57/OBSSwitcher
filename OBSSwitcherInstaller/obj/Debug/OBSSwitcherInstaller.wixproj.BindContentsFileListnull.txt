@@ -1,0 +1,2 @@
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\bin\Debug\\OBSSwitcher.exe
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\bin\Debug\\OBSSwitcher.exe.config

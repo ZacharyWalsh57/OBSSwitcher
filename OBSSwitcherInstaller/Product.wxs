@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+	 xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+	<Product Id="*"
+	         Name="OBS Switcher"
+	         Language="1033"
+	         Version="1.0.0.0"
+	         Manufacturer="MEAT Inc. (Zack Walsh)"
+	         UpgradeCode="9E379D38-4D9F-4705-9AD4-6E118DD64C9C">
+
+		<!-- Upgrade Info -->
+		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
+		<Media Id='1' Cabinet='OBSSwitcher.cab'/>
+
+		<!-- Icon Settings -->
+		<Icon Id="InstallerIcon.ico" SourceFile="$(var.OBSSwitcher.ProjectDir)\IconFiles\OBSSwitcherIcon.ico"/>
+		<Property Id="ARPPRODUCTICON" Value="InstallerIcon.ico" />
+
+		<!-- ========================== DIRECTORY LAYOUT/SETUP HERE ============================ -->
+		<!-- Directory Setup -->
+		<SetDirectory Id="RootApps" Value="[WindowsVolume]MEAT Inc"/>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramFilesFolder">
+				<Directory Id="RootApps" Name="MEAT Inc">
+					<Directory Id="OBSSwitcherInstallDir" Name="OBS Switcher"/>
+				</Directory>
+			</Directory>
+				<Directory Id="ProgramMenuFolder">
+				<Directory Id="ApplicationProgramsFolder" Name="MEAT Inc">
+					<Directory Id="OBSSwitcherStartFolder" Name="OBS Switcher"/>
+				</Directory>
+			</Directory>
+		</Directory>
+
+		<!-- ============================= COMPONENT GROUPS GO HERE ============================= -->
+		<!-- OBS Switcher Components-->
+		<ComponentGroup Id="OBSSwitcherFiles" Directory="OBSSwitcherInstallDir">
+			<Component Id="cmpC32EA7A363F14F6FB672E59F22E78A05" Guid="{60C3C644-B43A-4261-9A5B-B8D44B7BF23F}">
+				<File Id="filEAD5E2D8DDAD40E38A27BDDF204877EE" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe" />
+			</Component>
+			<Component Id="cmpA868E8596F6871556DBDF454D266C036" Guid="{C710A69E-7037-4E29-A20A-40C5D31E5780}">
+				<File Id="filFF68736913D32AE972529AC0AB026915" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe.config" />
+			</Component>
+		</ComponentGroup>
+
+		<!-- ============================= DIR PERMS GROUPS GO HERE ============================= -->
+		<!-- Setup Perms -->
+		<DirectoryRef Id="RootApps">
+			<Component DiskId="1" Id="PermissionsComponent_Root" Guid="{AF95E80E-285F-436C-B635-907D93AF9AE4}">
+				<CreateFolder>
+					<util:PermissionEx User="Users" GenericAll="yes"/>
+					<util:PermissionEx User="Administrators" GenericAll="yes" />
+				</CreateFolder>
+			</Component>
+		</DirectoryRef>
+		<DirectoryRef Id="OBSSwitcherInstallDir">
+			<Component DiskId="1" Id="PermissionsComponent_InstallDir" Guid="{8BB61B5A-6112-42D3-98B1-8F26096D1AF6}">
+				<CreateFolder>
+					<util:PermissionEx User="Users" GenericAll="yes"/>
+					<util:PermissionEx User="Administrators" GenericAll="yes" />
+				</CreateFolder>
+			</Component>
+		</DirectoryRef>
+
+		<!-- ========================== START MENU CONFIGURATIONS ============================ -->
+		<DirectoryRef Id="ProgramMenuFolder">
+			<Component Id="OBSSwitcherShortcut" Guid="{A302F806-489F-4725-9B7B-D87A78D11466}">
+				<Shortcut Id="StartMenuShortcut"
+				          Name="OBS Switcher"
+				          Description="Change OBS Scenes Based on Mouse Position."
+				          Target="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe"
+				          WorkingDirectory="OBSSwitcherInstallDir"/>
+				<RemoveFolder Id="RemoveProgramFilesFolder" Directory="OBSSwitcherInstallDir" On="uninstall"/>
+				<RemoveFolder Id="RemoveStartMenuFolder" Directory="OBSSwitcherStartFolder" On="uninstall"/>
+				<RegistryValue Root="HKCU" Key="Software\MEAT Inc\OBSSwitcher" Name="IsInstalled" Type="integer" Value="1" KeyPath="yes"/>
+			</Component>
+		</DirectoryRef>
+
+		<!-- ============================ FEATURE PACKAGE OUTPUT HERE ============================= -->
+		<!-- Files and Resources -->
+		<Feature Id="ProductFeature" Title="MEAT Inc - OBS Switcher" Level="1">
+			<!-- Start menu shortcut -->
+			<ComponentRef Id="OBSSwitcherShortcut"/>
+
+			<!-- Component Sets -->
+			<ComponentGroupRef Id="OBSSwitcherFiles"/>
+		</Feature>
+	</Product>
+</Wix>

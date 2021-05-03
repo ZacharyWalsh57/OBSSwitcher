@@ -1,4 +1,3 @@
-C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.csprojAssemblyReference.cache
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.csproj.CoreCompileInputs.cache
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\bin\Debug\OBSSwitcher.exe.config
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\bin\Debug\OBSSwitcher.exe
