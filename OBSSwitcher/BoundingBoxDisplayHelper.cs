@@ -114,16 +114,12 @@ namespace OBSSwitcher
             BrushColorSet = BrushColor;
 
             // Set size of this form and the border style.
+            TopMost = true;
             BackColor = BrushColor;
             Size = new Size(RectangleWidth, MaxHeight);
             Left = StartLocation;
             FormBorderStyle = FormBorderStyle.FixedSingle;
             StartPosition = FormStartPosition.Manual;
-
-            // Draw our rectangle here.
-            Graphics FormGfx = CreateGraphics();
-            Pen BrushPen = new Pen(BrushColor);
-            FormGfx.DrawRectangle(BrushPen, StartLocation, 0, RectangleWidth, MaxHeight);
 
             // Show dialog here.
             ShowDialog();
