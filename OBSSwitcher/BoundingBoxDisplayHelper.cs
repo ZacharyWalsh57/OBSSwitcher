@@ -6,95 +6,127 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
+using System.Drawing;
+using System.Windows.Forms;
+
 namespace OBSSwitcher
 {
-    public class PainterObject
-    {
-        public Color RectangleColor;
-        public Tuple<int, int> StartRectangleSizes;
-        public Tuple<int, int> StopRectangleSizes;
+    public class BoundingBoxBroker
+    {        
+        // Max height of the main display.
+        public int MaxHeight = Screen.PrimaryScreen.Bounds.Height;
+        public int MaxWidth = Screen.PrimaryScreen.Bounds.Width;
 
-        public Graphics GraphicSet;
-        public IntPtr DesktopPointer;
+        // List of all the bounding box display objects.
+        public List<BoundingBoxDisplayHelper> BoundingBoxList;
+
+        // Pane size values.
+        PaneSizeValues Sizes;
+
+        /// <summary>
+        /// CTOR which takes a sizes item to create forms on the spot for all three bounding sizes.
+        /// </summary>
+        /// <param name="Sizes"></param>
+        public BoundingBoxBroker(PaneSizeValues Sizes)
+        {
+            // Make a list for us to hold box items in.
+            BoundingBoxList = new List<BoundingBoxDisplayHelper>();
+            this.Sizes = Sizes;
+        }
+
+        /// <summary>
+        /// Draws all bounding box items on the display.
+        /// </summary>
+        public void DrawAllBoundingBoxes()
+        {
+            // Widths for rectangles here.
+            int RectOneWidth = Sizes.PaneOneValues.Item2 - Sizes.PaneOneValues.Item1;
+            int RectTwoWidth = Sizes.PaneTwoValues.Item2 - Sizes.PaneTwoValues.Item1;
+            int RectThreeWidth = Sizes.PaneThreeValues.Item2 - Sizes.PaneThreeValues.Item1;
+
+            // Make a new bounding box items.
+            BoundingBoxList.Add(new BoundingBoxDisplayHelper(Color.Red, Sizes.PaneOneValues.Item1, RectOneWidth));
+            BoundingBoxList.Add(new BoundingBoxDisplayHelper(Color.Green, Sizes.PaneTwoValues.Item1, RectTwoWidth));
+            BoundingBoxList.Add(new BoundingBoxDisplayHelper(Color.Blue, Sizes.PaneThreeValues.Item1, RectThreeWidth));
+        }
+        /// <summary>
+        /// Draws a single bounding box item based on the params passed in to this function.
+        /// </summary>
+        /// <param name="BrushColor"></param>
+        /// <param name="StartLocation"></param>
+        /// <param name="RectangleWidth"></param>
+        public void DrawBoundingBox(Color BrushColor, int StartLocation, int RectangleWidth)
+        {
+            // Make bounding box item here.
+            var NextBox = new BoundingBoxDisplayHelper(BrushColor, StartLocation, RectangleWidth);
+            if (BoundingBoxList.Contains(NextBox)) { CloseBoundingBox(BrushColor); return; }
+
+            // Add if it was not real.
+            BoundingBoxList.Add(NextBox); 
+        }
+        /// <summary>
+        /// Closes all bounding box forms which contain the given color object for the background.
+        /// </summary>
+        /// <param name="BrushColor"></param>
+        public void CloseBoundingBox(Color BrushColor)
+        {
+            // Get all the boxes to close out.
+            var BoxesToClose = BoundingBoxList.Where(BoxObj => BoxObj.BrushColorSet == BrushColor).ToList();
+            if (BoxesToClose.Count == 0) { return; }
+
+            // Close the box here and remove from list of items.
+            foreach (var BoundingBox in BoxesToClose)
+            {
+                // Remove from list.
+                int IndexOfBox = BoundingBoxList.IndexOf(BoundingBox);
+                BoundingBoxList.RemoveAt(IndexOfBox);
+
+                // Close box.
+                BoundingBox.Close();
+            }
+        }
+        /// <summary>
+        /// Close out all bounding box items here.
+        /// </summary>
+        public void CloseAllBoxes()
+        {
+            // Close the box here and remove from list of items.
+            foreach (var BoundingBox in BoundingBoxList)
+                BoundingBox.Close();
+
+            // Clear the list.
+            BoundingBoxList = new List<BoundingBoxDisplayHelper>();
+        }
     }
 
-    public class BoundingBoxDisplayHelper
+    public class BoundingBoxDisplayHelper : Form
     {
-        // Painter Helpers
-        [DllImport("User32.dll")]
-        public static extern IntPtr GetDC(IntPtr hwnd);
-        [DllImport("User32.dll")]
-        public static extern void ReleaseDC(IntPtr hwnd, IntPtr dc);
+        // Max height of the main display.
+        public int MaxHeight = Screen.PrimaryScreen.Bounds.Height;
+        public int MaxWidth = Screen.PrimaryScreen.Bounds.Width;
+        
+        // Store the color of the bounding box set.
+        public Color BrushColorSet;
 
-        // Store a list of currently active graphics objects.
-        private List<PainterObject> ActiveGraphicsList = new List<PainterObject>();
-
-        /// <summary>
-        /// Draws all pane sizes based on a pane size object passed in.
-        /// </summary>
-        /// <param name="Sizes">Pane Sizes object.</param>
-        public void DrawAllRectangles(PaneSizeValues Sizes)
+        public BoundingBoxDisplayHelper(Color BrushColor, int StartLocation, int RectangleWidth)
         {
-            DrawRectangles(Color.Red, Sizes.StartScreenSizes, Sizes.PaneOneValues);
-            DrawRectangles(Color.Green, Sizes.PaneTwoValues, Sizes.PaneThreeValues);
-            DrawRectangles(Color.Blue, Sizes.PaneThreeValues, Sizes.MaxScreenSizes);
-        }
-        /// <summary>
-        /// Draws the bound boxes for obs regions. 
-        /// </summary>
-        /// <param name="PaneNumber">Pane number to draw. If a number is passed in as an invalid value, it shows all panes.</param>
-        public void DrawRectangles(Color BrushColor, Tuple<int, int> StartPaneValues, Tuple<int,int> StopPaneValues)
-        {
-            // Get desktop pointer and the graphics object involved.
-            IntPtr DesktopPointer = GetDC(IntPtr.Zero);
-            Graphics DesktopGraphic = Graphics.FromHdc(DesktopPointer);
+            // Store brush color. Use this for indexing later on.
+            BrushColorSet = BrushColor;
 
-            // Draw the rectangle here.
-            Brush NextBrush = new SolidBrush(BrushColor);
-            DesktopGraphic.FillRectangle(NextBrush, new Rectangle(
-                StartPaneValues.Item1, StartPaneValues.Item2,
-                StopPaneValues.Item2, System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height));
+            // Set size of this form and the border style.
+            BackColor = BrushColor;
+            Size = new Size(RectangleWidth, MaxHeight);
+            Left = StartLocation;
+            FormBorderStyle = FormBorderStyle.FixedSingle;
+            StartPosition = FormStartPosition.Manual;
 
-            // Make Painter Object.
-            var ThisPainter = new PainterObject()
-            {
-                GraphicSet = DesktopGraphic,
-                RectangleColor = BrushColor,
-                StartRectangleSizes = StartPaneValues,
-                StopRectangleSizes = StopPaneValues,
-                DesktopPointer = DesktopPointer
-            };
+            // Draw our rectangle here.
+            Graphics FormGfx = CreateGraphics();
+            Pen BrushPen = new Pen(BrushColor);
+            FormGfx.DrawRectangle(BrushPen, StartLocation, 0, RectangleWidth, MaxHeight);
 
-            // Add to list.
-            ActiveGraphicsList.Add(ThisPainter);
-        }
-
-
-        /// <summary>
-        /// Closes the rectangle which matches the color specified.
-        /// </summary>
-        /// <param name="CloseColor">Color of rectangle to close.</param>
-        public void ClosePainter(Color CloseColor)
-        {
-            // Get painter object.
-            var Painter = ActiveGraphicsList.FirstOrDefault(PaintObj => PaintObj.RectangleColor == CloseColor);
-            if (Painter == null) { return; }
-
-            // Close the rectangle.
-            Painter.GraphicSet.Dispose();
-            ReleaseDC(IntPtr.Zero, Painter.DesktopPointer);
-        }
-        /// <summary>
-        /// Closes all rectangle painters on the system.
-        /// </summary>
-        public void CloseAllPainters()
-        {
-            foreach (var Painter in ActiveGraphicsList)
-            {
-                // Close the rectangle.
-                Painter.GraphicSet.Dispose();
-                ReleaseDC(IntPtr.Zero, Painter.DesktopPointer);
-            }
+            // Show dialog here.
+            ShowDialog();
         }
     }
 }

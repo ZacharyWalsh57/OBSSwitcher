@@ -12,7 +12,6 @@ namespace OBSSwitcher
     public class OBSSwitcherMain
     {
         // Paints rectangles here.
-        public static BoundingBoxDisplayHelper Painter = new BoundingBoxDisplayHelper();
         public static PaneSizeValues PaneSizes = new PaneSizeValues();
         public static bool UseDebugKey = false;
 
@@ -202,7 +201,7 @@ namespace OBSSwitcher
                 Console.ForegroundColor = ConsoleColor.White;
                 Console.WriteLine("+---------------------------------------------+");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|          OBS Switcher Version 1.1.0         |");
+                Console.WriteLine("|          OBS Switcher Version 1.2.1         |");
                 Console.WriteLine("| Created And Maintained By Zack Walsh - 2021 |");
                 Console.WriteLine("|                                             |");
                 Console.WriteLine("|---------------------------------------------|");
@@ -275,12 +274,14 @@ namespace OBSSwitcher
                 if (!Console.KeyAvailable) { continue; }
                 var NextKey = Console.ReadKey(true);
 
+                // Start
                 if (NextKey.Key == ConsoleKey.Enter)
                 {
                     Console.Clear();
                     return;
                 }
 
+                // Debug view window.
                 if (NextKey.Key == ConsoleKey.D)
                 {
                     UseDebugKey = !UseDebugKey;
@@ -289,37 +290,8 @@ namespace OBSSwitcher
                     return;
                 }
 
-                if (NextKey.Key == ConsoleKey.P)
-                {
-                    // Store wanted pane key.
-                    var PaneKey = Console.ReadKey(true);
-                    
-                    // All Panes.
-                    if (PaneKey.Key == ConsoleKey.P)
-                        Painter.DrawAllRectangles(PaneSizes);
-
-                    // Pane 1
-                    if (PaneKey.Key == ConsoleKey.NumPad1)
-                        Painter.DrawRectangles(Color.Red, 
-                            PaneSizes.StartScreenSizes,
-                            PaneSizes.PaneOneValues);
-
-                    // Pane 2
-                    if (PaneKey.Key == ConsoleKey.NumPad2)
-                        Painter.DrawRectangles(Color.Green, 
-                            PaneSizes.PaneTwoValues,
-                            PaneSizes.PaneThreeValues);
-
-                    // Pane 3
-                    if (PaneKey.Key == ConsoleKey.NumPad2)
-                        Painter.DrawRectangles(Color.Green,
-                            PaneSizes.PaneThreeValues,
-                            PaneSizes.MaxScreenSizes);
-
-                    // Clear all panes.
-                    if (PaneKey.Key == ConsoleKey.C)
-                        Painter.CloseAllPainters();
-                }
+                // Pane outlines.
+                if (NextKey.Key == ConsoleKey.P) { ProcessPaneKey(); }
             }
         }
         private static void WriteMouseInfo(MouseCords XAndYPos)
@@ -328,6 +300,40 @@ namespace OBSSwitcher
             string yPos = "[Y: " + XAndYPos.PosY.ToString("D4") + "]";
             if (XAndYPos.PosY < 0) { yPos = "[Y: ZERO]"; }
             Console.Write(xPos + yPos + " -- ");
+        }
+        private static void ProcessPaneKey()
+        {
+            // Box painting helper here and next console key.
+            var PaneKey = Console.ReadKey(true);
+            BoundingBoxBroker BoxPainter = new BoundingBoxBroker(PaneSizes);
+
+            // All Panes open/close.
+            if (PaneKey.Key == ConsoleKey.C) { BoxPainter.CloseAllBoxes(); return; }
+            if (PaneKey.Key == ConsoleKey.P) { BoxPainter.DrawAllBoundingBoxes(); }
+
+            // Pane 1
+            if (PaneKey.Key == ConsoleKey.D1)
+            {
+                // Store width of this rectangle object
+                int RectOneWidth = PaneSizes.PaneOneValues.Item2 - PaneSizes.PaneOneValues.Item1;
+                BoxPainter.DrawBoundingBox(Color.Red, PaneSizes.PaneOneValues.Item1, RectOneWidth);
+            }
+
+            // Pane 2
+            else if (PaneKey.Key == ConsoleKey.D2)
+            {
+                // Store width of this rectangle object
+                int RectTwoWidth = PaneSizes.PaneTwoValues.Item2 - PaneSizes.PaneTwoValues.Item1;
+                BoxPainter.DrawBoundingBox(Color.Green, PaneSizes.PaneTwoValues.Item1, RectTwoWidth);
+            }
+
+            // Pane 3
+            else if (PaneKey.Key == ConsoleKey.D3)
+            {
+                // Store width of this rectangle object
+                int RectThreeWidth = PaneSizes.PaneThreeValues.Item2 - PaneSizes.PaneThreeValues.Item1;
+                BoxPainter.DrawBoundingBox(Color.Blue, PaneSizes.PaneThreeValues.Item1, RectThreeWidth);
+            }
         }
     }
 }
