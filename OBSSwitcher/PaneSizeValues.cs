@@ -8,7 +8,12 @@ using System.Threading.Tasks;
 namespace OBSSwitcher
 {
     public class PaneSizeValues
-    {// Pairs of window widths for the current window selected.
+    {
+        // Max Size of the main display
+        public Tuple<int, int> StartScreenSizes = new Tuple<int, int>(0,0);
+        public Tuple<int, int> MaxScreenSizes = new Tuple<int, int>(0,0);
+
+        // Pairs of window widths for the current window selected.
         public Tuple<int, int> PaneOneValues { get; set; }
         public Tuple<int, int> PaneTwoValues { get; set; }
         public Tuple<int, int> PaneThreeValues { get; set; }
@@ -25,6 +30,13 @@ namespace OBSSwitcher
             PaneOneValues = new Tuple<int, int>(0, WindowOneMax);
             PaneTwoValues = new Tuple<int, int>(WindowOneMax + 1, WindowTwoMax);
             PaneThreeValues = new Tuple<int, int>(WindowTwoMax + 1, WindowThreeMax);
+
+            // Set the max sizes and min sizes.
+            StartScreenSizes = new Tuple<int, int>(0, 0);
+            MaxScreenSizes = new Tuple<int, int>(
+                    System.Windows.Forms.Screen.PrimaryScreen.Bounds.Width,
+                    System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height
+            );
         }
 
         /// <summary>
