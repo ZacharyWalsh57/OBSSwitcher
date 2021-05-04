@@ -21,6 +21,7 @@ namespace OBSSwitcher
         public static PaneSizeValues PaneSizes;
         public static PaneHotKeys HotKeys;
         public static KeySender Sender;
+        public static ConsoleResizeChecker ConsoleResizer;
 
         // Update time value.
         public static int DelayTime;
@@ -28,34 +29,20 @@ namespace OBSSwitcher
         public static void Main(string[] args)
         {
             // Set console size. 
-            Console.SetWindowSize(65, 60);
+            Console.SetWindowSize(60, 60);
 
             // Setup Pane Sizes and Hotkeys here.
             PaneSizes = new PaneSizeValues();
             HotKeys = new PaneHotKeys(PaneSizes);
             Sender = new KeySender(HotKeys);
+            ConsoleResizer = new ConsoleResizeChecker(PaneSizes, Sender);
 
             // Get DelayTime
             if (!int.TryParse(ConfigurationManager.AppSettings.Get("DelayTime"), out DelayTime))
                 DelayTime = 1000;
 
             // Run switcher here.
-            while (true)
-            {
-                // Start program.
-                RunSwitcher();
-
-                // Store mouse cords here.
-                var XAndYPos = new MouseCords();
-                WriteMouseInfo(XAndYPos);
-
-                // Move to pane 1 to start.
-                PrintCurrentPane(0);
-
-                // Store keysender item and process key.
-                Sender.SwitchView(0);
-                Console.Clear();
-            }            
+            while (true) { RunSwitcher(); }
         }
 
         /// <summary>
@@ -63,8 +50,27 @@ namespace OBSSwitcher
         /// </summary>
         private static void RunSwitcher()
         {
-            // Display output info to the user.
+            // Start the console resizer
+            ConsoleResizer.ResizeWanted = true;
+            ConsoleResizer.CheckForResize();
+
+            // Write config info.
             WriteConfigInfo(PaneSizes, Sender);
+
+            // Wait for user to hit enter to begin.
+            // Check for next input key here.
+            while (true)
+            {
+                // If no new key wait.
+                if (!Console.KeyAvailable) { continue; }
+                var NextKey = Console.ReadKey(true);
+
+                if (NextKey.Key == ConsoleKey.Enter) { break; }                     // Start app
+                if (NextKey.Key == ConsoleKey.P) { HotKeys.ProcessPaneKey(); }      // Draw bounding boxes.
+            }
+
+            // Clear the console.
+            Console.Clear();
 
             // Store last move so we dont repeat
             int LastMoveIndex = -1;
@@ -83,13 +89,13 @@ namespace OBSSwitcher
                     if (ConfigurationManager.AppSettings.Get("ForcePositiveY") != "TRUE") { continue; }
 
                     // Change the view if needed.
-                    if (LastMoveIndex != 0) { Sender.SwitchView(0); }
+                    if (LastMoveIndex != -1) { Sender.SwitchView(-1); }
                     continue;
                 }
 
                 // Find the X Pane item range.
                 if (PaneSizes.PaneSizesList.Count == 0) { throw new Exception("FAILED TO FIND ANY PANE SETTINGS ITEMS WHEN CHANGING VIEWS!"); }
-                for (int PaneIndex = 1; PaneIndex < PaneSizes.PaneSizesList.Count; PaneIndex++)
+                for (int PaneIndex = 0; PaneIndex < PaneSizes.PaneSizesList.Count; PaneIndex++)
                 {
                     // Get the top and bottom range items.
                     int MinRange = PaneSizes.PaneSizesList[PaneIndex].Item1;
@@ -100,11 +106,18 @@ namespace OBSSwitcher
                     if (PaneIndex == LastMoveIndex) { break; }
 
                     // Store the index of the pane we are on and print that info out.
-                    PrintCurrentPane(PaneIndex);
                     Sender.SwitchView(PaneIndex);
+                    PrintCurrentPane(PaneIndex, XAndYPos);
                     LastMoveIndex = PaneIndex;
                 }
             }
+
+            // Stop resizer, move back to home and clear out.
+            ConsoleResizer.ResizeWanted = false;
+            PrintCurrentPane(0, null);    // Return to main view on stop key.
+            Sender.SwitchView(-1);
+            Thread.Sleep(2500);
+            Console.Clear();
         }
 
 
@@ -113,20 +126,21 @@ namespace OBSSwitcher
         /// </summary>
         /// <param name="PaneSize">Sizes object</param>
         /// <param name="Sender">Key sender</param>
-        private static void WriteConfigInfo(PaneSizeValues PaneSize, KeySender Sender)
+        public static void WriteConfigInfo(PaneSizeValues PaneSize, KeySender Sender)
         {
             // Store a temp file.
             string TempFile = Path.GetTempFileName();
             using (var ConsoleWriter = new StreamWriter(TempFile))
             {
                 // Set Console Output here.
+                Console.Clear();
                 Console.SetOut(ConsoleWriter);
 
                 // Title info here.
                 Console.Clear();
                 Console.WriteLine("+---------------------------------------------+");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|          OBS Switcher Version 1.2.1         |");
+                Console.WriteLine("|          OBS Switcher Version 1.3.5         |");
                 Console.WriteLine("|~Created And Maintained By Zack Walsh - 2021~|");
                 Console.WriteLine("|                                             |");
                 Console.WriteLine("|---------------------------------------------|");
@@ -225,20 +239,7 @@ namespace OBSSwitcher
             // Delete Temp File.
             try { File.Delete(TempFile); }
             catch { }
-
-            // Check for next input key here.
-            while (true)
-            {
-                // If no new key wait.
-                if (!Console.KeyAvailable) { continue; }
-                var NextKey = Console.ReadKey(true);
-
-                if (NextKey.Key == ConsoleKey.Enter) { Console.Clear(); return; }   // Start app
-                if (NextKey.Key == ConsoleKey.P) { HotKeys.ProcessPaneKey(); }      // Draw bounding boxes.
-            }
         }
-
-
         /// <summary>
         /// Prints a string to the console using the center print function.
         /// </summary>
@@ -264,33 +265,54 @@ namespace OBSSwitcher
             PrintStyleSheet.AddStyle(@"ENTER|ESCAPE", Color.HotPink, match => match.ToString());
 
             // Print the styled console sheet.
-            Console.SetCursorPosition(((Console.WindowWidth - PrintThis.Length) / 2) + 1, Console.CursorTop);
+            if (Console.WindowWidth % 2 != 0) Console.SetCursorPosition(((Console.WindowWidth - PrintThis.Length) / 2) + 1, Console.CursorTop);
+            else { Console.SetCursorPosition(((Console.WindowWidth - PrintThis.Length) / 2), Console.CursorTop); }
             Console.WriteLineStyled(PrintThis, PrintStyleSheet);
-        }
-        /// <summary>
-        /// Print out he current mouse location
-        /// </summary>
-        /// <param name="XAndYPos">X and Y cords object of the current mouse spot.</param>
-        private static void WriteMouseInfo(MouseCords XAndYPos)
-        {
-            string xPos = "[X: " + XAndYPos.PosX.ToString("D4") + "]";
-            string yPos = "[Y: " + XAndYPos.PosY.ToString("D4") + "]";
-            if (XAndYPos.PosY < 0) { yPos = "[Y: ZERO]"; }
-            Console.Write(xPos + yPos + " -- ");
         }
         /// <summary>
         /// Print out what pane is currently open 
         /// </summary>
         /// <param name="PaneIndex"></param>
-        private static void PrintCurrentPane(int PaneIndex)
+        private static void PrintCurrentPane(int PaneIndex, MouseCords XAndYPos)
         {
+            // Style mouse output.
+            StyleSheet RunningOutputStyle = new StyleSheet(Color.White);
+            RunningOutputStyle.AddStyle(@"\[|\]|", Color.DarkGray, match => match.ToString());
+            RunningOutputStyle.AddStyle(@"X:|Y:", Color.Yellow, match => match.ToString());
+            RunningOutputStyle.AddStyle(@"ZERO", Color.Orange, match => match.ToString());
+            RunningOutputStyle.AddStyle(@"MAIN", Color.HotPink, match => match.ToString());
+
+            // Write seperator line.
+            for (int Count = 0; Count < Console.WindowWidth; Count++) { Console.WriteStyled("-", RunningOutputStyle); }
+            Console.Write("");
+
+            // Check for main here
+            if (XAndYPos == null || PaneIndex == -1) { Console.WriteStyled("[X: MAIN][Y: MAIN] | ", RunningOutputStyle); }
+            else
+            {
+                // Write mouse cords.
+                string xPos = "[X: " + XAndYPos.PosX.ToString("D4") + "]";
+                string yPos = "[Y: " + XAndYPos.PosY.ToString("D4") + "]";
+                if (XAndYPos.PosY < 0) { yPos = "[Y: ZERO]"; }
+                Console.WriteStyled(xPos + yPos + " | ", RunningOutputStyle);
+            }
+
+            // Write pane info.
             Console.ForegroundColor = Color.DarkGray;
             Console.Write("[");
             Console.ForegroundColor = PaneSizes.ConsolePaneColors[PaneIndex];
-            if (PaneIndex == 0) { Console.Write("SWITCH TO MAIN PANE VIEW"); }
-            if (PaneIndex != 0) { Console.Write($"SWITCH TO PANE #{PaneIndex} VIEW"); }
+            if (PaneIndex >= 0) { Console.Write($"SWITCHING TO OBS PANE NUMBER {PaneIndex}"); }
+            if (PaneIndex < 0)
+            {
+                Console.ForegroundColor = Color.White; 
+                Console.Write("SWITCHING TO OBS MAIN PANE");
+            }
             Console.ForegroundColor = Color.DarkGray;
             Console.WriteLine("]");
+
+            // Write seperator line.
+            for (int Count = 0; Count < Console.WindowWidth; Count++) { Console.WriteStyled("-", RunningOutputStyle); }
+            Console.Write("");
         }
     }
 }

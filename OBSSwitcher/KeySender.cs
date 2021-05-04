@@ -17,6 +17,10 @@ namespace OBSSwitcher
         private PaneHotKeys HotKeys;
         private List<string> KeyStrings;
         private string ProcName;
+        private string ServiceAppType;
+
+        // OBS Pointer
+        private IntPtr OBSHandle = IntPtr.Zero;
 
         // Key builder strings.
         private string ModString = "+^%";
@@ -35,7 +39,11 @@ namespace OBSSwitcher
             KeyStrings = new List<string>();
 
             // Name of OBS Window.
-            string ProcName = ConfigurationManager.AppSettings.Get("OBSWindowName");
+            ProcName = ConfigurationManager.AppSettings.Get("OBSWindowName");
+            ServiceAppType = ConfigurationManager.AppSettings.Get("StreamServiceSW");
+
+            // Check for null.
+            if (string.IsNullOrEmpty(ServiceAppType)) { throw new Exception("PLEASE SPECIFY SERVICE APP TYPE (OBS, XPLIT, ETC)"); }
             if (string.IsNullOrEmpty(ProcName)) { throw new Exception("PLEASE SPECIFY THE OBS WINDOW NAME AND RESTART THIS APP"); }
 
             // Convert the list of ConsoleKey items into string items.
@@ -47,11 +55,33 @@ namespace OBSSwitcher
         /// Forces the program to the front of the UI.
         /// </summary>
         /// <param name="NameOfWindow">Name of window to pull</param>
-        private void BringToFront(string NameOfWindow)
+        private void BringToFront()
         {
-            var OBSHandle = FindWindow("Qt5152QWindowIcon", NameOfWindow);
-            if (OBSHandle == IntPtr.Zero) { return; }
+            // Set the window if the pointer is not zero.
+            if (OBSHandle != IntPtr.Zero)
+            {
+                SetForegroundWindow(OBSHandle);
+                return;
+            }
 
+            // Get Process list first if needed.
+            Process[] OBSProcessList = Process.GetProcesses().Where(ProcObj =>
+                ProcObj.ProcessName.ToUpper().Contains(ServiceAppType)).ToArray();
+
+            // Check for processes found or use app config value.
+            if (OBSProcessList.Length != 0)
+            {
+                ProcName = ServiceAppType;
+                OBSHandle = OBSProcessList.FirstOrDefault().MainWindowHandle;
+            }
+            else
+            {
+                // Go for config value.
+                OBSHandle = FindWindow("Qt5152QWindowIcon", ProcName);
+                if (OBSHandle == IntPtr.Zero) { throw new Exception("PLEASE ENSURE THE OBS WINDOW NAME IS SET CORRECTLY!"); }
+            }
+            
+            // Set foreground window.
             SetForegroundWindow(OBSHandle);
         }
         /// <summary>
@@ -61,7 +91,10 @@ namespace OBSSwitcher
         public void SwitchView(int ViewIndex)
         {
             // Focus OBS
-            BringToFront(ProcName);
+            BringToFront();
+
+            // Set main view or not. -1 means show full display output.
+            if (ViewIndex == -1) { ViewIndex = 0; }
 
             // Send they HotKey here.
             SendKeys.SendWait(ModString + KeyStrings[ViewIndex]);

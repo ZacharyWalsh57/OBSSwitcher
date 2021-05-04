@@ -31,8 +31,9 @@ namespace OBSSwitcher
                 System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height
             );
 
-            // Main Pane base color (White)
-            ConsolePaneColors.Add(Color.White);
+            // Main Pane base color (White) and main sizes.
+            // PaneSizesList.Add(new Tuple<int, int>(0, MaxScreenSizes.Item1));
+            // ConsolePaneColors.Add(Color.White);
 
             // Get the pane size values from app config.
             bool KeepChecking = true;
