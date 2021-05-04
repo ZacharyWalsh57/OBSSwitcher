@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -65,8 +66,13 @@ namespace OBSSwitcher
                 if (!Console.KeyAvailable) { continue; }
                 var NextKey = Console.ReadKey(true);
 
-                if (NextKey.Key == ConsoleKey.Enter) { break; }                     // Start app
-                if (NextKey.Key == ConsoleKey.P) { HotKeys.ProcessPaneKey(); }      // Draw bounding boxes.
+                if (NextKey.Key == ConsoleKey.Enter) { break; }         
+                if (NextKey.Key == ConsoleKey.P)
+                {
+                    // Draw new boxes and update the UI
+                    HotKeys.ProcessPaneKey();
+                    PaneSizes = new PaneSizeValues();
+                }
             }
 
             // Clear the console.
@@ -89,7 +95,13 @@ namespace OBSSwitcher
                     if (ConfigurationManager.AppSettings.Get("ForcePositiveY") != "TRUE") { continue; }
 
                     // Change the view if needed.
-                    if (LastMoveIndex != -1) { Sender.SwitchView(-1); }
+                    if (LastMoveIndex != -1)
+                    {
+                        PrintCurrentPane(-1, null);
+                        if (!Debugger.IsAttached) Sender.SwitchView(-1);
+                    }
+
+                    // Move on the loop.
                     continue;
                 }
 
@@ -102,21 +114,24 @@ namespace OBSSwitcher
                     int MaxRange = PaneSizes.PaneSizesList[PaneIndex].Item2;
 
                     // Check if we're in range and need to move.
-                    if (!Enumerable.Range(MinRange, MaxRange).Contains(XAndYPos.PosX)) { continue; }
+                    // RANGE IS SETUP AS MIN AND COUNT. NOT MIN AND MAX!!
+                    if (!Enumerable.Range(MinRange, MaxRange - MinRange).Contains(XAndYPos.PosX)) { continue; }
                     if (PaneIndex == LastMoveIndex) { break; }
 
                     // Store the index of the pane we are on and print that info out.
-                    Sender.SwitchView(PaneIndex);
+                    if (!Debugger.IsAttached) Sender.SwitchView(PaneIndex);
                     PrintCurrentPane(PaneIndex, XAndYPos);
                     LastMoveIndex = PaneIndex;
+
+                    // Move on
+                    break;
                 }
             }
 
             // Stop resizer, move back to home and clear out.
             ConsoleResizer.ResizeWanted = false;
-            PrintCurrentPane(0, null);    // Return to main view on stop key.
-            Sender.SwitchView(-1);
-            Thread.Sleep(2500);
+            if (!Debugger.IsAttached) Sender.SwitchView(-1);
+            PrintCurrentPane(0, null);   
             Console.Clear();
         }
 
@@ -140,7 +155,7 @@ namespace OBSSwitcher
                 Console.Clear();
                 Console.WriteLine("+---------------------------------------------+");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|          OBS Switcher Version 1.3.5         |");
+                Console.WriteLine("|          OBS Switcher Version 1.3.6         |");
                 Console.WriteLine("|~Created And Maintained By Zack Walsh - 2021~|");
                 Console.WriteLine("|                                             |");
                 Console.WriteLine("|---------------------------------------------|");
