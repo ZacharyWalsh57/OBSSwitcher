@@ -5,3 +5,5 @@ C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\bin\Debug\OBS
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.exe
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.pdb
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.csprojAssemblyReference.cache
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\bin\Debug\Colorful.Console.dll
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.csproj.CopyComplete
