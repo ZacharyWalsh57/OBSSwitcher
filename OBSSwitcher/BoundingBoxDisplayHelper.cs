@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Configuration;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -39,27 +41,33 @@ namespace OBSSwitcher
         /// </summary>
         public void DrawAllBoundingBoxes()
         {
-            // Widths for rectangles here.
-            int RectOneWidth = Sizes.PaneOneValues.Item2 - Sizes.PaneOneValues.Item1;
-            int RectTwoWidth = Sizes.PaneTwoValues.Item2 - Sizes.PaneTwoValues.Item1;
-            int RectThreeWidth = Sizes.PaneThreeValues.Item2 - Sizes.PaneThreeValues.Item1;
+            for (int PaneCounter = 0; PaneCounter < Sizes.PaneSizesList.Count; PaneCounter++)
+            {
+                // Store the color and pane sizes here.
+                var PaneColor = Sizes.ConsolePaneColors[PaneCounter];
+                var PaneSizeValues = Sizes.PaneSizesList[PaneCounter];
+                var PaneWidth = PaneSizeValues.Item2 - PaneSizeValues.Item1;
 
-            // Make a new bounding box items.
-            BoundingBoxList.Add(new BoundingBoxDisplayHelper(Color.Red, Sizes.PaneOneValues.Item1, RectOneWidth));
-            BoundingBoxList.Add(new BoundingBoxDisplayHelper(Color.Green, Sizes.PaneTwoValues.Item1, RectTwoWidth));
-            BoundingBoxList.Add(new BoundingBoxDisplayHelper(Color.Blue, Sizes.PaneThreeValues.Item1, RectThreeWidth));
+                // Add box to the list of all boxes.
+                BoundingBoxList.Add(new BoundingBoxDisplayHelper(
+                    PaneCounter,
+                    PaneColor,
+                    PaneSizeValues.Item1,
+                    PaneWidth)
+                );
+            }
         }
         /// <summary>
-        /// Draws a single bounding box item based on the params passed in to this function.
-        /// </summary>
-        /// <param name="BrushColor"></param>
-        /// <param name="StartLocation"></param>
-        /// <param name="RectangleWidth"></param>
-        public void DrawBoundingBox(Color BrushColor, int StartLocation, int RectangleWidth)
+         /// Draws a single bounding box item based on the params passed in to this function.
+         /// </summary>
+         /// <param name="BrushColor"></param>
+         /// <param name="StartLocation"></param>
+         /// <param name="RectangleWidth"></param>
+        public void DrawBoundingBox(int PaneNumber, Color BrushColor, int StartLocation, int RectangleWidth)
         {
             // Make bounding box item here.
-            var NextBox = new BoundingBoxDisplayHelper(BrushColor, StartLocation, RectangleWidth);
-            if (BoundingBoxList.Contains(NextBox)) { CloseBoundingBox(BrushColor); return; }
+            var NextBox = new BoundingBoxDisplayHelper(PaneNumber, BrushColor, StartLocation, RectangleWidth);
+            if (BoundingBoxList.Contains(NextBox)) { CloseBoundingBox(PaneNumber); return; }
 
             // Add if it was not real.
             BoundingBoxList.Add(NextBox); 
@@ -68,10 +76,10 @@ namespace OBSSwitcher
         /// Closes all bounding box forms which contain the given color object for the background.
         /// </summary>
         /// <param name="BrushColor"></param>
-        public void CloseBoundingBox(Color BrushColor)
+        public void CloseBoundingBox(int PaneNumber)
         {
             // Get all the boxes to close out.
-            var BoxesToClose = BoundingBoxList.Where(BoxObj => BoxObj.BrushColorSet == BrushColor).ToList();
+            var BoxesToClose = BoundingBoxList.Where(BoxObj => BoxObj.PaneNumber == PaneNumber).ToList();
             if (BoxesToClose.Count == 0) { return; }
 
             // Close the box here and remove from list of items.
@@ -107,22 +115,74 @@ namespace OBSSwitcher
         
         // Store the color of the bounding box set.
         public Color BrushColorSet;
+        public int PaneNumber;
 
-        public BoundingBoxDisplayHelper(Color BrushColor, int StartLocation, int RectangleWidth)
+        public BoundingBoxDisplayHelper(int PaneNumber, Color BackgroundColor, int StartLocation, int RectangleWidth)
         {
             // Store brush color. Use this for indexing later on.
-            BrushColorSet = BrushColor;
+            BrushColorSet = BackgroundColor;
+            this.PaneNumber = PaneNumber;
 
             // Set size of this form and the border style.
             TopMost = true;
-            BackColor = BrushColor;
-            Size = new Size(RectangleWidth, MaxHeight);
             Left = StartLocation;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            BackColor = BrushColorSet;
+            Size = new Size(RectangleWidth, MaxHeight);
+            FormBorderStyle = FormBorderStyle.SizableToolWindow;
             StartPosition = FormStartPosition.Manual;
 
-            // Show dialog here.
+            // Show the form
             ShowDialog();
+        }
+
+        /// <summary>
+        /// Draws out the text size of the pane in pixels.
+        /// </summary>
+        /// <param name="e"></param>
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            // Show the size of the panes here.
+            string TextToShow = $"Pane {PaneNumber + 1}\nSize: {Width}x{Height}";
+            Font PaneSizeFont = new Font("Arial", 36);
+
+            // Centring.
+            Rectangle CenterBox = new Rectangle(0, 0, Width, Height);
+            StringFormat PaneSizeStringFormat = new StringFormat();
+            PaneSizeStringFormat.Alignment = StringAlignment.Center;
+            PaneSizeStringFormat.LineAlignment = StringAlignment.Center;
+
+            // Draw the form output.
+            e.Graphics.DrawString(TextToShow, PaneSizeFont, Brushes.Black, CenterBox, PaneSizeStringFormat);
+            e.Graphics.DrawRectangle(Pens.Black, CenterBox);
+
+            // Store the closing info.
+            this.Closing += OnClosing;
+        }
+
+        /// <summary>
+        /// Stores new width and height of form object in the main.
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void OnClosing(object sender, CancelEventArgs e)
+        {
+            // Get the app config here.
+            Configuration AppConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+            // Store the new sizes here and in the list of tuple objects.
+            // This isnt great but it works for now.
+            var NewSizes = new Tuple<int, int>(Width, Height);
+            OBSSwitcherMain.PaneSizes.PaneSizesList[PaneNumber] = NewSizes;
+
+            // Save settings here.
+            // Add one to pane number for counting.
+            string PaneValueID = $"Pane{PaneNumber + 1}SizeValues";
+            string ValueString = NewSizes.Item1 + "," + NewSizes.Item2;
+            AppConfiguration.AppSettings.Settings[PaneValueID].Value = ValueString;
+
+            // Apply changes here and reload them
+            AppConfiguration.Save(ConfigurationSaveMode.Modified);
+            ConfigurationManager.RefreshSection("appSettings");
         }
     }
 }

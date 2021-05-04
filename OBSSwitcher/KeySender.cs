@@ -13,14 +13,14 @@ namespace OBSSwitcher
 {
     public class KeySender
     {
+        // Hotkeys and name of OBS window.
+        private PaneHotKeys HotKeys;
+        private List<string> KeyStrings;
+        private string ProcName;
+
+        // Key builder strings.
         private string ModString = "+^%";
         public string ModStringExpanded = "CTL + ALT + SHIFT";
-
-        public string MainPaneKey { get; set; }
-        public string Pane1HotKey { get; set; }
-        public string Pane2HotKey { get; set; }
-        public string Pane3HotKey { get; set; }
-        public string DebugWindowHotKey {get; set;}
 
         [DllImport("USER32.DLL")]
         static extern int SetForegroundWindow(IntPtr point);
@@ -28,15 +28,25 @@ namespace OBSSwitcher
         [DllImport("USER32.DLL", CharSet = CharSet.Unicode)]
         public static extern IntPtr FindWindow(String lpClassName, String lpWindowName);
 
-        public KeySender()
+        public KeySender(PaneHotKeys KeyItems)
         {
-            MainPaneKey = ConfigurationManager.AppSettings.Get("MainPaneKey");
-            Pane1HotKey = ConfigurationManager.AppSettings.Get("Pane1HotKey");
-            Pane2HotKey = ConfigurationManager.AppSettings.Get("Pane2HotKey");
-            Pane3HotKey = ConfigurationManager.AppSettings.Get("Pane3HotKey");
-            DebugWindowHotKey = ConfigurationManager.AppSettings.Get("DebugWindowHotKey");
+            // Store the hotkeys.
+            HotKeys = KeyItems;
+            KeyStrings = new List<string>();
+
+            // Name of OBS Window.
+            string ProcName = ConfigurationManager.AppSettings.Get("OBSWindowName");
+            if (string.IsNullOrEmpty(ProcName)) { throw new Exception("PLEASE SPECIFY THE OBS WINDOW NAME AND RESTART THIS APP"); }
+
+            // Convert the list of ConsoleKey items into string items.
+            foreach (var KeyItem in HotKeys.HotKeysList)
+                KeyStrings.Add(KeyItem.ToString());
         }
 
+        /// <summary>
+        /// Forces the program to the front of the UI.
+        /// </summary>
+        /// <param name="NameOfWindow">Name of window to pull</param>
         private void BringToFront(string NameOfWindow)
         {
             var OBSHandle = FindWindow("Qt5152QWindowIcon", NameOfWindow);
@@ -44,57 +54,19 @@ namespace OBSSwitcher
 
             SetForegroundWindow(OBSHandle);
         }
-
+        /// <summary>
+        /// Change to the selected view in OBS using the hotkey for it.
+        /// </summary>
+        /// <param name="ViewIndex"></param>
         public void SwitchView(int ViewIndex)
         {
-            string ProcName = "OBS 26.1.1 (64-bit, windows) - Profile: Untitled - Scenes: Untitled";
-            switch (ViewIndex)
-            {
-                case (0):
-                    BringToFront(ProcName);
+            // Focus OBS
+            BringToFront(ProcName);
 
-                    SendKeys.SendWait(ModString + MainPaneKey);
-                    System.Threading.Thread.Sleep(50);
-                    SendKeys.SendWait(ModString + MainPaneKey);
-
-                    break;
-
-                case (1):
-                    BringToFront(ProcName);
-
-                    SendKeys.SendWait(ModString + Pane1HotKey);
-                    System.Threading.Thread.Sleep(50);
-                    SendKeys.SendWait(ModString + Pane1HotKey);
-
-                    break;
-
-                case (2):
-                    BringToFront(ProcName);
-
-                    SendKeys.SendWait(ModString + Pane2HotKey);
-                    System.Threading.Thread.Sleep(50);
-                    SendKeys.SendWait(ModString + Pane2HotKey);
-
-                    break;
-
-                case (3):
-                    BringToFront(ProcName);
-
-                    SendKeys.SendWait(ModString + Pane3HotKey);
-                    System.Threading.Thread.Sleep(50);
-                    SendKeys.SendWait(ModString + Pane3HotKey);
-
-                    break;
-
-                case (4):
-                    BringToFront(ProcName);
-
-                    SendKeys.SendWait(ModString + DebugWindowHotKey);
-                    System.Threading.Thread.Sleep(50);
-                    SendKeys.SendWait(ModString + Pane3HotKey);
-
-                    break;
-            }
+            // Send they HotKey here.
+            SendKeys.SendWait(ModString + KeyStrings[ViewIndex]);
+            System.Threading.Thread.Sleep(50);
+            SendKeys.SendWait(ModString + KeyStrings[ViewIndex]);
         }
     }
 }
