@@ -171,7 +171,10 @@ namespace OBSSwitcher
 
             // Store the new sizes here and in the list of tuple objects.
             // This isnt great but it works for now.
-            var NewSizes = new Tuple<int, int>(Width, Height);
+
+            // UPDATE - Version 1.3.2 - Fixed issue where the saved values were not actually for panes here.
+            if (Left <= 50) { Left = 0; }
+            var NewSizes = new Tuple<int, int>(Left, Left + Width);
             OBSSwitcherMain.PaneSizes.PaneSizesList[PaneNumber] = NewSizes;
 
             // Save settings here.

@@ -4,7 +4,7 @@
 	<Product Id="*"
 	         Name="OBS Switcher"
 	         Language="1033"
-	         Version="1.3.0"
+	         Version="1.3.2"
 	         Manufacturer="MEAT Inc. (Zack Walsh)"
 	         UpgradeCode="9E379D38-4D9F-4705-9AD4-6E118DD64C9C">
 
@@ -41,6 +41,9 @@
 			</Component>
 			<Component Id="cmpA868E8596F6871556DBDF454D266C036" Guid="{C710A69E-7037-4E29-A20A-40C5D31E5780}">
 				<File Id="filFF68736913D32AE972529AC0AB026915" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe.config" />
+			</Component>
+			<Component Id="cmp310FB6D0246A4813ABD7E78D57A02A17" Guid="{EEA15912-277C-41BA-8EAE-726201107EF8}">
+				<File Id="filD3CF829B8D2D4F93A4E8D62B92285C9D" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\Colorful.Console.dll" />
 			</Component>
 		</ComponentGroup>
 
