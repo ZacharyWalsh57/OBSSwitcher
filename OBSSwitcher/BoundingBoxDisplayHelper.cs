@@ -41,7 +41,8 @@ namespace OBSSwitcher
         /// </summary>
         public void DrawAllBoundingBoxes()
         {
-            for (int PaneCounter = 0; PaneCounter < Sizes.PaneSizesList.Count; PaneCounter++)
+            if (Sizes.PaneSizesList.Count == 0) { throw new Exception("FAILED TO FIND ANY PANE SETTINGS ITEMS WHEN DRAWING BOUNDING BOXES!"); }
+            for (int PaneCounter = 1; PaneCounter < Sizes.PaneSizesList.Count; PaneCounter++)
             {
                 // Store the color and pane sizes here.
                 var PaneColor = Sizes.ConsolePaneColors[PaneCounter];

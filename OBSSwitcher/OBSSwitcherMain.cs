@@ -88,7 +88,8 @@ namespace OBSSwitcher
                 }
 
                 // Find the X Pane item range.
-                for (int PaneIndex = 0; PaneIndex < PaneSizes.PaneSizesList.Count; PaneIndex++)
+                if (PaneSizes.PaneSizesList.Count == 0) { throw new Exception("FAILED TO FIND ANY PANE SETTINGS ITEMS WHEN CHANGING VIEWS!"); }
+                for (int PaneIndex = 1; PaneIndex < PaneSizes.PaneSizesList.Count; PaneIndex++)
                 {
                     // Get the top and bottom range items.
                     int MinRange = PaneSizes.PaneSizesList[PaneIndex].Item1;
