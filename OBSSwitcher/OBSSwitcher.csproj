@@ -56,6 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="BoundingBoxDisplayHelper.cs" />
+    <Compile Include="ConsoleResizeChecker.cs" />
     <Compile Include="GetMouseCords.cs" />
     <Compile Include="KeySender.cs" />
     <Compile Include="OBSSwitcherMain.cs" />

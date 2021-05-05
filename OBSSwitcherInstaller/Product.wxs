@@ -4,7 +4,7 @@
 	<Product Id="*"
 	         Name="OBS Switcher"
 	         Language="1033"
-	         Version="1.3.2"
+	         Version="1.3.6"
 	         Manufacturer="MEAT Inc. (Zack Walsh)"
 	         UpgradeCode="9E379D38-4D9F-4705-9AD4-6E118DD64C9C">
 

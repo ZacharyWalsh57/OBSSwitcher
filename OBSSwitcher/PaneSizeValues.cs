@@ -31,8 +31,9 @@ namespace OBSSwitcher
                 System.Windows.Forms.Screen.PrimaryScreen.Bounds.Height
             );
 
-            // Main Pane base color (White)
-            ConsolePaneColors.Add(Color.White);
+            // Main Pane base color (White) and main sizes.
+            // PaneSizesList.Add(new Tuple<int, int>(0, MaxScreenSizes.Item1));
+            // ConsolePaneColors.Add(Color.White);
 
             // Get the pane size values from app config.
             bool KeepChecking = true;
@@ -56,7 +57,7 @@ namespace OBSSwitcher
                     // Get a color for this item.
                     var NextColor = Color.FromArgb(
                         RandomGen.Next(256),
-                        RandomGen.Next(256), 
+                        RandomGen.Next(256),
                         RandomGen.Next(256)
                     );
 
@@ -65,9 +66,31 @@ namespace OBSSwitcher
                     else { Thread.Sleep(500); }
                 }
 
-                // Store the tuple here.
-                var ThisPane = new Tuple<int, int>(xMin, xMax);
-                PaneSizesList.Add(ThisPane);
+                // Check for overalp.
+                if (PaneSizesList.Count == 0) { PaneSizesList.Add(new Tuple<int, int>(xMin, xMax)); }
+                else
+                {
+                    // Add one to the last X Value.
+                    int LastXMax = PaneSizesList[PaneSizesList.Count - 1].Item2;
+                    if (xMax <= LastXMax) { xMax = LastXMax + 1; }
+
+                    // Add to list of panes here.
+                    var NextSizes = new Tuple<int, int>(xMin, xMax);
+                    PaneSizesList.Add(NextSizes);
+
+                    // Save settings for this pane so we don't have to worry about it later.
+                    Configuration AppConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+                    
+                    // Store settings value as a string here.
+                    // STORE AS COUNT - 1 SINCE WE HAVE ALREADY ADDED THESE VALUES TO THE PANE LIST
+                    string PaneValueID = $"Pane{PaneSizesList.Count - 1}SizeValues";
+                    string ValueString = NextSizes.Item1 + "," + NextSizes.Item2;
+                    AppConfiguration.AppSettings.Settings[PaneValueID].Value = ValueString;
+
+                    // Apply changes here and reload them
+                    AppConfiguration.Save(ConfigurationSaveMode.Modified);
+                    ConfigurationManager.RefreshSection("appSettings");
+                }
 
                 // Tick pane counter 
                 PaneCounter++;
