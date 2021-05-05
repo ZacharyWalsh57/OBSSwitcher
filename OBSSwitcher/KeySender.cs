@@ -90,16 +90,20 @@ namespace OBSSwitcher
         /// <param name="ViewIndex"></param>
         public void SwitchView(int ViewIndex)
         {
-            // Focus OBS
-            BringToFront();
-
             // Set main view or not. -1 means show full display output.
             if (ViewIndex == -1) { ViewIndex = 0; }
 
-            // Send they HotKey here.
-            SendKeys.SendWait(ModString + KeyStrings[ViewIndex]);
+            // Store hotkey string. first.
+            string KeyToSend = ModString + KeyStrings[ViewIndex];
+
+            // Return if the Debugger is on for this app
+            if (Debugger.IsAttached) { return; }
+
+            // Focus OBS and send the HotKey here.
+            BringToFront();
+            SendKeys.SendWait(KeyToSend);
             System.Threading.Thread.Sleep(50);
-            SendKeys.SendWait(ModString + KeyStrings[ViewIndex]);
+            SendKeys.SendWait(KeyToSend);
         }
     }
 }

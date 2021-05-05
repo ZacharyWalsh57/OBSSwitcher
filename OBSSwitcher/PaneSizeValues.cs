@@ -22,7 +22,7 @@ namespace OBSSwitcher
         /// <summary>
         /// Ctor for app config value pulling.
         /// </summary>
-        public PaneSizeValues()
+        public PaneSizeValues(bool ResetToDefault = false)
         {
             // Store the start and max window sizes.
             StartScreenSizes = new Tuple<int, int>(0, 0);
@@ -43,6 +43,17 @@ namespace OBSSwitcher
                 // Get next pane item here. If it's null break off.
                 string CurrentPane = ConfigurationManager.AppSettings.Get("Pane" + PaneCounter + "SizeValues");
                 if (string.IsNullOrEmpty(CurrentPane)) { break; }
+
+                // To Force a value reset, use this.
+                if (ResetToDefault)
+                {
+                    // Store current Value set.
+                    int MinValue = 0;
+                    int MaxValue = MaxScreenSizes.Item1 / 2;
+
+                    // Get the next set of values and save here.
+                    CurrentPane = MinValue.ToString() + "," + MaxValue.ToString();
+                }
 
                 // Convert the pane info here.
                 string[] ValuesSplit = CurrentPane.Split(',');
@@ -67,30 +78,34 @@ namespace OBSSwitcher
                 }
 
                 // Check for overalp.
-                if (PaneSizesList.Count == 0) { PaneSizesList.Add(new Tuple<int, int>(xMin, xMax)); }
+                if (PaneSizesList.Count == 0 || ResetToDefault) { PaneSizesList.Add(new Tuple<int, int>(xMin, xMax)); }
                 else
                 {
                     // Add one to the last X Value.
                     int LastXMax = PaneSizesList[PaneSizesList.Count - 1].Item2;
-                    if (xMax <= LastXMax) { xMax = LastXMax + 1; }
+                    if (xMin <= LastXMax)
+                    {
+                        xMin = LastXMax + 1;
+                        if (xMax < xMin) { xMax = xMin + 1; }
+                    }
 
                     // Add to list of panes here.
                     var NextSizes = new Tuple<int, int>(xMin, xMax);
                     PaneSizesList.Add(NextSizes);
-
-                    // Save settings for this pane so we don't have to worry about it later.
-                    Configuration AppConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
-                    
-                    // Store settings value as a string here.
-                    // STORE AS COUNT - 1 SINCE WE HAVE ALREADY ADDED THESE VALUES TO THE PANE LIST
-                    string PaneValueID = $"Pane{PaneSizesList.Count - 1}SizeValues";
-                    string ValueString = NextSizes.Item1 + "," + NextSizes.Item2;
-                    AppConfiguration.AppSettings.Settings[PaneValueID].Value = ValueString;
-
-                    // Apply changes here and reload them
-                    AppConfiguration.Save(ConfigurationSaveMode.Modified);
-                    ConfigurationManager.RefreshSection("appSettings");
                 }
+
+                // Save settings for this pane so we don't have to worry about it later.
+                Configuration AppConfiguration = ConfigurationManager.OpenExeConfiguration(ConfigurationUserLevel.None);
+
+                // Store settings value as a string here.
+                // STORE AS COUNT - 1 SINCE WE HAVE ALREADY ADDED THESE VALUES TO THE PANE LIST
+                string PaneValueID = $"Pane{PaneCounter}SizeValues";
+                string ValueString = PaneSizesList.LastOrDefault().Item1 + "," + PaneSizesList.LastOrDefault().Item2;
+                AppConfiguration.AppSettings.Settings[PaneValueID].Value = ValueString;
+
+                // Apply changes here and reload them
+                AppConfiguration.Save(ConfigurationSaveMode.Modified);
+                ConfigurationManager.RefreshSection("appSettings");
 
                 // Tick pane counter 
                 PaneCounter++;
