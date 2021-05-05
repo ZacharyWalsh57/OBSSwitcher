@@ -97,7 +97,7 @@ namespace OBSSwitcher
                     // Change the view if needed.
                     if (LastMoveIndex != -1)
                     {
-                        PrintCurrentPane(0, null);
+                        PrintCurrentPane(-1, null);
                         if (!Debugger.IsAttached) Sender.SwitchView(-1);
                     }
 
