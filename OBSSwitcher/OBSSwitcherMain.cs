@@ -66,12 +66,23 @@ namespace OBSSwitcher
                 if (!Console.KeyAvailable) { continue; }
                 var NextKey = Console.ReadKey(true);
 
-                if (NextKey.Key == ConsoleKey.Enter) { break; }         
+                if (NextKey.Key == ConsoleKey.Enter) { break; }
+                if (NextKey.Key == ConsoleKey.R)
+                {
+                    // Check for R again to confirm.
+                    var ResetKey = Console.ReadKey(true);
+                    if (ResetKey.Key != ConsoleKey.R) { continue; }
+
+                    // Reset the pane keys if wanted.
+                    PaneSizes = new PaneSizeValues(true);
+                    WriteConfigInfo(PaneSizes, Sender);
+                }
                 if (NextKey.Key == ConsoleKey.P)
                 {
                     // Draw new boxes and update the UI
                     HotKeys.ProcessPaneKey();
                     PaneSizes = new PaneSizeValues();
+                    WriteConfigInfo(PaneSizes, Sender);
                 }
             }
 
@@ -98,7 +109,7 @@ namespace OBSSwitcher
                     if (LastMoveIndex != -1)
                     {
                         PrintCurrentPane(-1, null);
-                        if (!Debugger.IsAttached) Sender.SwitchView(-1);
+                        Sender.SwitchView(-1);
                     }
 
                     // Move on the loop.
@@ -119,7 +130,7 @@ namespace OBSSwitcher
                     if (PaneIndex == LastMoveIndex) { break; }
 
                     // Store the index of the pane we are on and print that info out.
-                    if (!Debugger.IsAttached) Sender.SwitchView(PaneIndex);
+                    Sender.SwitchView(PaneIndex + 1);
                     PrintCurrentPane(PaneIndex, XAndYPos);
                     LastMoveIndex = PaneIndex;
 
@@ -130,8 +141,8 @@ namespace OBSSwitcher
 
             // Stop resizer, move back to home and clear out.
             ConsoleResizer.ResizeWanted = false;
-            if (!Debugger.IsAttached) Sender.SwitchView(-1);
-            PrintCurrentPane(0, null);   
+            Sender.SwitchView(-1);
+            PrintCurrentPane(-1, null);
             Console.Clear();
         }
 
@@ -155,7 +166,7 @@ namespace OBSSwitcher
                 Console.Clear();
                 Console.WriteLine("+---------------------------------------------+");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|          OBS Switcher Version 1.3.6         |");
+                Console.WriteLine("|          OBS Switcher Version 1.4.1         |");
                 Console.WriteLine("|~Created And Maintained By Zack Walsh - 2021~|");
                 Console.WriteLine("|                                             |");
                 Console.WriteLine("|---------------------------------------------|");
@@ -204,11 +215,16 @@ namespace OBSSwitcher
                     // Store pane name and info.
                     string PaneName = "Pane " + (PaneCounter + 1) + " Size";
                     string FormatString = "{0,0} {1,0} {2,17} {3,9}";
-                    if (PaneCounter == 0) { FormatString = "{0,0} {1,5} {2,20} {3,6}"; }
 
                     // String format and write out.
                     string FormatPxEdge = PaneSizeItem.Item1  + "px";
+
+                    // Check for 0px callout.
                     if (FormatPxEdge == "0px") { FormatPxEdge = "Left Edge"; }
+                    if (PaneCounter == 0 || FormatPxEdge.Contains("Edge"))
+                        FormatString = "{0,0} {1,5} {2,20} {3,6}";
+
+                    // Store value here.
                     string ValueString = $"{FormatPxEdge} - {PaneSizeItem.Item2}px";
 
                     // Write out the line here.
@@ -230,9 +246,11 @@ namespace OBSSwitcher
                 Console.WriteLine("|   sizes of panes OBS needs to be setup to   |");
                 Console.WriteLine("|  switch between based on your cursor spot.  |");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|  Press 'P' then 'C' to clear pane outlines  |");
+                Console.WriteLine("|  Other Pane Commands                        |");
+                Console.WriteLine("|  - Press 'P' then 'C' to clear outlines     |");
+                Console.WriteLine("|  - Press 'R' twice to reset pane sizes      |");
                 Console.WriteLine("|---------------------------------------------|");
-                Console.WriteLine("|        =Hot Key Control Information=        |");
+                Console.WriteLine("|          =Main Control Information=         |");
                 Console.WriteLine("|---------------------------------------------|");
                 Console.WriteLine("|      Press ESCAPE at any time to pause      |");
                 Console.WriteLine("|          Press ENTER to continue            |");
@@ -266,7 +284,7 @@ namespace OBSSwitcher
             PrintStyleSheet.AddStyle(@"OBS Switcher Version \d+(.|\s)\d+(.|\s)\d+\s", Color.Lime, match => match.ToString());
             PrintStyleSheet.AddStyle(@"~(\S+\s+)[^~]+~", Color.White, match => match.Replace("~", " ").ToString());
             PrintStyleSheet.AddStyle(@"=(\S+\s+)[^=]+=", Color.Yellow, match => match.Replace("=", " ").ToString());
-            PrintStyleSheet.AddStyle(@"OBS HotKeys|Pane Sizes", Color.GreenYellow, match => match.ToString());
+            PrintStyleSheet.AddStyle(@"OBS HotKeys|Pane Sizes|Other Pane Commands", Color.GreenYellow, match => match.ToString());
             PrintStyleSheet.AddStyle(@"\+|-{2,}|\|", Color.DarkGray, match => match.ToString());
             PrintStyleSheet.AddStyle(@"Full View|Full Output", Color.LightSkyBlue, match => match.ToString());
             PrintStyleSheet.AddStyle(@"Pane \d+", Color.LightSkyBlue, match => match.ToString());
@@ -315,8 +333,11 @@ namespace OBSSwitcher
             // Write pane info.
             Console.ForegroundColor = Color.DarkGray;
             Console.Write("[");
-            Console.ForegroundColor = PaneSizes.ConsolePaneColors[PaneIndex];
-            if (PaneIndex >= 0) { Console.Write($"SWITCHING TO OBS PANE NUMBER {PaneIndex}"); }
+            if (PaneIndex >= 0)
+            {
+                Console.ForegroundColor = PaneSizes.ConsolePaneColors[PaneIndex];
+                Console.Write($"SWITCHING TO OBS PANE NUMBER {PaneIndex + 1}");
+            }
             if (PaneIndex < 0)
             {
                 Console.ForegroundColor = Color.White; 

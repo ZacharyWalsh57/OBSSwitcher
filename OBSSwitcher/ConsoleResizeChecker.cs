@@ -35,6 +35,7 @@ namespace OBSSwitcher
                 // We only resize if the window falls below 60.
                 while (true)
                 {
+                    #region NEW RESIZE CHECKER 
                     // Store equal value count and init width.
                     // If we don't get 100 equal width values, that means the value of the window width is changing.
                     int TotalLoops = 0;
@@ -86,10 +87,12 @@ namespace OBSSwitcher
 
                     // If we have less than 75 Confirmed equals then change the values.
                     if (ContinuedSameValues <= 50 || ForceRedraw) { OBSSwitcherMain.WriteConfigInfo(SizeValues, KeySend); }
+                    #endregion
 
                     #region OLD CONFIRM WINDOW SIZE
-                    /* OLD COMPARISON VALUES
+                    // OLD COMPARISON VALUES
                     // Store old values.
+                    /*
                     int OldWidth = Console.WindowWidth;
                     if (OldWidth < 50) { Console.SetWindowSize(50, Console.WindowHeight); }
 
