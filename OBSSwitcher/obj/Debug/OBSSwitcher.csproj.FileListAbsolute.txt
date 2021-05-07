@@ -6,3 +6,4 @@ C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBS
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.csproj.CopyComplete
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.exe
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.pdb
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcher\obj\Debug\OBSSwitcher.csprojAssemblyReference.cache

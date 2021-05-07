@@ -57,32 +57,33 @@ namespace OBSSwitcher
         /// <param name="NameOfWindow">Name of window to pull</param>
         private void BringToFront()
         {
-            // Set the window if the pointer is not zero.
-            if (OBSHandle != IntPtr.Zero)
+            try
             {
+                // Get Process list first if needed.
+                Process[] OBSProcessList = Process.GetProcesses().Where(ProcObj =>
+                    ProcObj.ProcessName.ToUpper().Contains(ServiceAppType)).ToArray();
+
+                // Check for processes found or use app config value.
+                if (OBSProcessList.Length != 0)
+                {
+                    ProcName = ServiceAppType;
+                    OBSHandle = OBSProcessList.FirstOrDefault().MainWindowHandle;
+                }
+                else
+                {
+                    // Go for config value.
+                    OBSHandle = FindWindow("Qt5152QWindowIcon", ProcName);
+                    if (OBSHandle == IntPtr.Zero) { throw new Exception("PLEASE ENSURE THE OBS WINDOW NAME IS SET CORRECTLY!"); }
+                }
+
+                // Set foreground window.
                 SetForegroundWindow(OBSHandle);
-                return;
             }
-
-            // Get Process list first if needed.
-            Process[] OBSProcessList = Process.GetProcesses().Where(ProcObj =>
-                ProcObj.ProcessName.ToUpper().Contains(ServiceAppType)).ToArray();
-
-            // Check for processes found or use app config value.
-            if (OBSProcessList.Length != 0)
+            catch
             {
-                ProcName = ServiceAppType;
-                OBSHandle = OBSProcessList.FirstOrDefault().MainWindowHandle;
+                if (OBSHandle != IntPtr.Zero) { SetForegroundWindow(OBSHandle); }
+                else { throw new Exception("FAILED TO FIND OBS WINDOW!"); }
             }
-            else
-            {
-                // Go for config value.
-                OBSHandle = FindWindow("Qt5152QWindowIcon", ProcName);
-                if (OBSHandle == IntPtr.Zero) { throw new Exception("PLEASE ENSURE THE OBS WINDOW NAME IS SET CORRECTLY!"); }
-            }
-            
-            // Set foreground window.
-            SetForegroundWindow(OBSHandle);
         }
         /// <summary>
         /// Change to the selected view in OBS using the hotkey for it.
@@ -90,6 +91,9 @@ namespace OBSSwitcher
         /// <param name="ViewIndex"></param>
         public void SwitchView(int ViewIndex)
         {
+            // Do this if not in front window.
+            if (!Debugger.IsAttached) { BringToFront(); }
+
             // Set main view or not. -1 means show full display output.
             if (ViewIndex == -1) { ViewIndex = 0; }
 
@@ -97,13 +101,13 @@ namespace OBSSwitcher
             string KeyToSend = ModString + KeyStrings[ViewIndex];
 
             // Return if the Debugger is on for this app
-            if (Debugger.IsAttached) { return; }
-
-            // Focus OBS and send the HotKey here.
-            BringToFront();
-            SendKeys.SendWait(KeyToSend);
-            System.Threading.Thread.Sleep(50);
-            SendKeys.SendWait(KeyToSend);
+            if (!Debugger.IsAttached)
+            {
+                // Focus OBS and send the HotKey here.
+                SendKeys.SendWait(KeyToSend);
+                System.Threading.Thread.Sleep(50);
+                SendKeys.SendWait(KeyToSend);
+            }
         }
     }
 }
