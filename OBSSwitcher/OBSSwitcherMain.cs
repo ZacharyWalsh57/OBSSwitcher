@@ -166,7 +166,7 @@ namespace OBSSwitcher
                 Console.Clear();
                 Console.WriteLine("+---------------------------------------------+");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|          OBS Switcher Version 1.4.1         |");
+                Console.WriteLine("|          OBS Switcher Version 1.4.3         |");
                 Console.WriteLine("|~Created And Maintained By Zack Walsh - 2021~|");
                 Console.WriteLine("|                                             |");
                 Console.WriteLine("|---------------------------------------------|");

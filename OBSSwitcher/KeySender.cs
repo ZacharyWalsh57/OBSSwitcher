@@ -19,6 +19,11 @@ namespace OBSSwitcher
         private string ProcName;
         private string ServiceAppType;
 
+        public int SendAttempts = 2;      // Number of times to try and send the command 
+        public int SendDelayTime = 50;    // The time to wait between each send.
+
+        public bool ForceFocusOBS = false;  // Force OBS to focus each time we loop the send command.
+
         // OBS Pointer
         private IntPtr OBSHandle = IntPtr.Zero;
 
@@ -42,9 +47,31 @@ namespace OBSSwitcher
             ProcName = ConfigurationManager.AppSettings.Get("OBSWindowName");
             ServiceAppType = ConfigurationManager.AppSettings.Get("StreamServiceSW");
 
+            // Find the refocus value.
+            bool.TryParse(ConfigurationManager.AppSettings.Get("ForceRefocus").ToLower(), out ForceFocusOBS);
+
             // Check for null.
             if (string.IsNullOrEmpty(ServiceAppType)) { throw new Exception("PLEASE SPECIFY SERVICE APP TYPE (OBS, XPLIT, ETC)"); }
             if (string.IsNullOrEmpty(ProcName)) { throw new Exception("PLEASE SPECIFY THE OBS WINDOW NAME AND RESTART THIS APP"); }
+
+            // Pull in the SendAttempts and SendDelayTime
+            if (!int.TryParse(ConfigurationManager.AppSettings.Get("KeySendCount"), out SendAttempts))
+                SendAttempts = 2;   // Default send count.
+
+            if (!int.TryParse(ConfigurationManager.AppSettings.Get("SendDelayValue"), out SendDelayTime))
+                SendDelayTime = 50; // Default delay time.
+
+            // Make sure we don't have some absurd value here.
+            uint CheckNegativeSendAttempts = (uint)SendAttempts;
+            uint CheckNegativeSendDelayTime = (uint)SendDelayTime;
+
+            // Negative value check.
+            SendAttempts = (int)CheckNegativeSendAttempts;
+            SendDelayTime = (int)CheckNegativeSendDelayTime;
+
+            // Gigantic number check
+            if (SendAttempts >= 5) { SendAttempts = 5; }
+            if (SendDelayTime >= 500) { SendAttempts = 500; }
 
             // Convert the list of ConsoleKey items into string items.
             foreach (var KeyItem in HotKeys.HotKeysList)
@@ -60,8 +87,11 @@ namespace OBSSwitcher
             try
             {
                 // Get Process list first if needed.
+                // 5/13. Fixed a bug where the switcher app was being considered obs.
                 Process[] OBSProcessList = Process.GetProcesses().Where(ProcObj =>
-                    ProcObj.ProcessName.ToUpper().Contains(ServiceAppType)).ToArray();
+                    ProcObj.ProcessName.ToUpper().Contains(ServiceAppType) &&
+                    !ProcObj.ProcessName.ToUpper().Contains("OBSSWITCHER"))
+                .ToArray();
 
                 // Check for processes found or use app config value.
                 if (OBSProcessList.Length != 0)
@@ -90,23 +120,28 @@ namespace OBSSwitcher
         /// </summary>
         /// <param name="ViewIndex"></param>
         public void SwitchView(int ViewIndex)
-        {
-            // Do this if not in front window.
-            if (!Debugger.IsAttached) { BringToFront(); }
+        {            
+            // Return if the Debugger is on for this app
+            if (Debugger.IsAttached) { return; }
 
-            // Set main view or not. -1 means show full display output.
+            // Build sending string.   
             if (ViewIndex == -1) { ViewIndex = 0; }
-
-            // Store hotkey string. first.
             string KeyToSend = ModString + KeyStrings[ViewIndex];
 
-            // Return if the Debugger is on for this app
-            if (!Debugger.IsAttached)
+            // Run Loop to keep sending while needed.
+            BringToFront();
+            for (int SendCounter = 0; SendCounter < SendAttempts; SendCounter++)
             {
-                // Focus OBS and send the HotKey here.
+                // Refocus if the force bool is set to true.
+                // Default is false.
+                if (ForceFocusOBS) BringToFront();
+
+                // Send the HotKey here.
                 SendKeys.SendWait(KeyToSend);
-                System.Threading.Thread.Sleep(50);
-                SendKeys.SendWait(KeyToSend);
+            
+                // Wait if not on last loop.
+                if (SendCounter == SendAttempts - 1) { break; }
+                System.Threading.Thread.Sleep(SendDelayTime);
             }
         }
     }
