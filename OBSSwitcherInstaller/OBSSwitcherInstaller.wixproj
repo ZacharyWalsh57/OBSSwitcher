@@ -6,7 +6,7 @@
     <ProductVersion>3.10</ProductVersion>
     <ProjectGuid>10f48f5f-6163-4c05-94d4-27593f05c65d</ProjectGuid>
     <SchemaVersion>2.0</SchemaVersion>
-    <OutputName>OBSSwitcher Installer</OutputName>
+    <OutputName>OBSSwitcherInstaller</OutputName>
     <OutputType>Package</OutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">

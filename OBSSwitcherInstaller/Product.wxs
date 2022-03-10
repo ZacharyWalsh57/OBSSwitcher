@@ -29,18 +29,18 @@
 
 		<!-- Directory Setup -->
 		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramMenuFolder"/>
 			<Directory Id="ProgramFilesFolder">
-				<Directory Id="RootApps" Name="MEAT Inc">
 					<Directory Id="OBSSwitcherInstallDir" Name="OBS Switcher">
 						<Component Id="OBSSwitcherFiles" Guid="C0DAD1F0-8592-47F5-8282-5A069D9A6F17">
 							<File Id="OBSSWITCHER.EXE.CONFIG" Name="OBSSwitcher.exe.config" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe.config" />
 							<File Id="COLORFUL.CONSOLE.DLL" Name="Colorful.Console.dll" Source="$(var.OBSSwitcher.TargetDir)\Colorful.Console.dll" />
-							<File Id="OBSSWITCHER.EXE" Name="OBSSwitcher.exe" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe">
+							<File Id="OBSSWITCHER.EXE"  KeyPath="yes" Name="OBSSwitcher.exe" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe">
 								<!-- Start Menu Shortcut -->
 								<Shortcut Id="OBSSwitcherStartMenuShortcut"
 								          IconIndex="0"
 								          Advertise="yes"
-								          Directory="OBSSwitcherInstallDir"
+								          Directory="ProgramMenuFolder"
 								          Icon="OBSSwitcherStartMenuIcon.exe"
 								          WorkingDirectory="OBSSwitcherInstallDir"
 								          Name="OBSSwitcher - $(var.ProductVersion)"
@@ -50,7 +50,6 @@
 							</File>
 						</Component>
 					</Directory>
-				</Directory>
 			</Directory>
 		</Directory>
 
