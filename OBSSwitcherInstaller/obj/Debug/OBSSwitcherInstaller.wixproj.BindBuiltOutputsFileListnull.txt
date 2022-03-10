@@ -1,3 +1,2 @@
-C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcher.cab
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcher Installer.msi
 C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcher Installer.wixpdb
