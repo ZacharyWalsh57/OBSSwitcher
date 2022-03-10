@@ -1,7 +1,6 @@
-C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcher.cab
-C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcher Installer.msi
-C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcher Installer.wixpdb
 obj\Debug\Product.wixobj
 obj\Debug\OBSSwitcherInstaller.wixproj.BindContentsFileListnull.txt
 obj\Debug\OBSSwitcherInstaller.wixproj.BindOutputsFileListnull.txt
 obj\Debug\OBSSwitcherInstaller.wixproj.BindBuiltOutputsFileListnull.txt
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcherInstaller.msi
+C:\Users\zwals\source\repos\ZacharyWalsh57\OBSSwitcher\OBSSwitcherInstaller\bin\Debug\OBSSwitcherInstaller.wixpdb

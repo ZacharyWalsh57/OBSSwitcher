@@ -1,93 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
 	 xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+	<?define UpgradeCode="{9E379D38-4D9F-4705-9AD4-6E118DD64C9C}"?>
+	<?define ProductVersion="!(bind.fileVersion.OBSSWITCHER.EXE)"?>
 	<Product Id="*"
 	         Name="OBS Switcher"
 	         Language="1033"
-	         Version="1.4.1"
-	         Manufacturer="MEAT Inc. (Zack Walsh)"
-	         UpgradeCode="9E379D38-4D9F-4705-9AD4-6E118DD64C9C">
+	         Version="$(var.ProductVersion)"
+	         Manufacturer="MEAT Inc"
+	         UpgradeCode="$(var.UpgradeCode)">
 
-		<!-- Upgrade Info -->
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed."/>
-		<Media Id='1' Cabinet='OBSSwitcher.cab'/>
-
-		<!-- Icon Settings -->
-		<Icon Id="InstallerIcon.ico" SourceFile="$(var.OBSSwitcher.ProjectDir)\IconFiles\OBSSwitcherIcon.ico"/>
-		<Property Id="ARPPRODUCTICON" Value="InstallerIcon.ico" />
+		<!-- Package Metadata Configuration -->
+		<Package InstallerVersion="200" Compressed="yes" />
+		<Media Id="1" Cabinet="media1.cab" EmbedCab="yes" />
+		<!-- Upgrade Information -->
+		<Upgrade Id="$(var.UpgradeCode)">
+			<UpgradeVersion Property="PREVIOUSVERSIONINSTALLED" Minimum="0.0.0.0" Maximum="$(var.ProductVersion)" IncludeMinimum="yes" IncludeMaximum="yes" MigrateFeatures="yes"></UpgradeVersion>
+			<UpgradeVersion Property="NEWERVERSIONINSTALLED" Minimum="$(var.ProductVersion)" Maximum="99.0.0.0" IncludeMinimum="no" IncludeMaximum="yes"></UpgradeVersion>
+		</Upgrade>
+		<!-- Downgrading and Upgrading Sequences-->
+		<InstallExecuteSequence>
+			<RemoveExistingProducts Before="InstallInitialize">PREVIOUSVERSIONINSTALLED&lt;&gt;""</RemoveExistingProducts>
+			<Custom Action="PreventDowngrading" After="FindRelatedProducts">NEWERVERSIONINSTALLED&lt;&gt;"" AND NOT Installed</Custom>
+		</InstallExecuteSequence>
+		<CustomAction Id="PreventDowngrading" Error="A newer version of the OBSSwitcher is already installed!" />
 
 		<!-- ========================== DIRECTORY LAYOUT/SETUP HERE ============================ -->
+
 		<!-- Directory Setup -->
-		<SetDirectory Id="RootApps" Value="[WindowsVolume]MEAT Inc"/>
 		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="ProgramMenuFolder"/>
 			<Directory Id="ProgramFilesFolder">
-				<Directory Id="RootApps" Name="MEAT Inc">
-					<Directory Id="OBSSwitcherInstallDir" Name="OBS Switcher"/>
-				</Directory>
-			</Directory>
-				<Directory Id="ProgramMenuFolder">
-				<Directory Id="ApplicationProgramsFolder" Name="MEAT Inc">
-					<Directory Id="OBSSwitcherStartFolder" Name="OBS Switcher"/>
-				</Directory>
+					<Directory Id="OBSSwitcherInstallDir" Name="OBS Switcher">
+						<Component Id="OBSSwitcherFiles" Guid="C0DAD1F0-8592-47F5-8282-5A069D9A6F17">
+							<File Id="OBSSWITCHER.EXE.CONFIG" Name="OBSSwitcher.exe.config" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe.config" />
+							<File Id="COLORFUL.CONSOLE.DLL" Name="Colorful.Console.dll" Source="$(var.OBSSwitcher.TargetDir)\Colorful.Console.dll" />
+							<File Id="OBSSWITCHER.EXE"  KeyPath="yes" Name="OBSSwitcher.exe" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe">
+								<!-- Start Menu Shortcut -->
+								<Shortcut Id="OBSSwitcherStartMenuShortcut"
+								          IconIndex="0"
+								          Advertise="yes"
+								          Directory="ProgramMenuFolder"
+								          Icon="OBSSwitcherStartMenuIcon.exe"
+								          WorkingDirectory="OBSSwitcherInstallDir"
+								          Name="OBSSwitcher - $(var.ProductVersion)"
+								          Description="Switch OBS Scenes With Ease! Made For Ultrawides where streaming is normally impossible.">
+									<Icon Id="OBSSwitcherStartMenuIcon.exe" SourceFile="$(var.OBSSwitcher.ProjectDir)\IconFiles\OBSSwitcherIcon.ico" />
+								</Shortcut>
+							</File>
+						</Component>
+					</Directory>
 			</Directory>
 		</Directory>
 
-		<!-- ============================= COMPONENT GROUPS GO HERE ============================= -->
-		<!-- OBS Switcher Components-->
-		<ComponentGroup Id="OBSSwitcherFiles" Directory="OBSSwitcherInstallDir">
-			<Component Id="cmpC32EA7A363F14F6FB672E59F22E78A05" Guid="{60C3C644-B43A-4261-9A5B-B8D44B7BF23F}">
-				<File Id="filEAD5E2D8DDAD40E38A27BDDF204877EE" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe" />
-			</Component>
-			<Component Id="cmpA868E8596F6871556DBDF454D266C036" Guid="{C710A69E-7037-4E29-A20A-40C5D31E5780}">
-				<File Id="filFF68736913D32AE972529AC0AB026915" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe.config" />
-			</Component>
-			<Component Id="cmp310FB6D0246A4813ABD7E78D57A02A17" Guid="{EEA15912-277C-41BA-8EAE-726201107EF8}">
-				<File Id="filD3CF829B8D2D4F93A4E8D62B92285C9D" KeyPath="yes" Source="$(var.OBSSwitcher.TargetDir)\Colorful.Console.dll" />
-			</Component>
-		</ComponentGroup>
-
-		<!-- ============================= DIR PERMS GROUPS GO HERE ============================= -->
-		<!-- Setup Perms -->
-		<DirectoryRef Id="RootApps">
-			<Component DiskId="1" Id="PermissionsComponent_Root" Guid="{AF95E80E-285F-436C-B635-907D93AF9AE4}">
-				<CreateFolder>
-					<util:PermissionEx User="Users" GenericAll="yes"/>
-					<util:PermissionEx User="Administrators" GenericAll="yes" />
-				</CreateFolder>
-			</Component>
-		</DirectoryRef>
-		<DirectoryRef Id="OBSSwitcherInstallDir">
-			<Component DiskId="1" Id="PermissionsComponent_InstallDir" Guid="{8BB61B5A-6112-42D3-98B1-8F26096D1AF6}">
-				<CreateFolder>
-					<util:PermissionEx User="Users" GenericAll="yes"/>
-					<util:PermissionEx User="Administrators" GenericAll="yes" />
-				</CreateFolder>
-			</Component>
-		</DirectoryRef>
-
-		<!-- ========================== START MENU CONFIGURATIONS ============================ -->
-		<DirectoryRef Id="ProgramMenuFolder">
-			<Component Id="OBSSwitcherShortcut" Guid="{A302F806-489F-4725-9B7B-D87A78D11466}">
-				<Shortcut Id="StartMenuShortcut"
-				          Name="OBS Switcher"
-				          Description="Switch OBS Scenes With Ease! Made For Ultrawides where streaming is normally impossible."
-				          Target="$(var.OBSSwitcher.TargetDir)\OBSSwitcher.exe"
-				          WorkingDirectory="OBSSwitcherInstallDir"/>
-				<RemoveFolder Id="RemoveProgramFilesFolder" Directory="OBSSwitcherInstallDir" On="uninstall"/>
-				<RemoveFolder Id="RemoveStartMenuFolder" Directory="OBSSwitcherStartFolder" On="uninstall"/>
-				<RegistryValue Root="HKCU" Key="Software\MEAT Inc\OBSSwitcher" Name="IsInstalled" Type="integer" Value="1" KeyPath="yes"/>
-			</Component>
-		</DirectoryRef>
-
 		<!-- ============================ FEATURE PACKAGE OUTPUT HERE ============================= -->
+
 		<!-- Files and Resources -->
 		<Feature Id="ProductFeature" Title="MEAT Inc - OBS Switcher" Level="1">
-			<!-- Start menu shortcut -->
-			<ComponentRef Id="OBSSwitcherShortcut"/>
-
-			<!-- Component Sets -->
-			<ComponentGroupRef Id="OBSSwitcherFiles"/>
+			<ComponentRef Id="OBSSwitcherFiles"/>
 		</Feature>
+
+		<!-- Component Refs for App Files And Links -->
+		<Property Id="ARPHELPLINK">https://github.com/ZacharyWalsh57/OBSSwitcher/</Property>
+		<Property Id="ARPURLINFOABOUT">https://github.com/ZacharyWalsh57/OBSSwitcher</Property>
+		<Property Id="ARPURLUPDATEINFO">https://github.com/ZacharyWalsh57/OBSSwitcher/</Property>
+		<Property Id="ARPHELPTELEPHONE">(516)633-3356</Property>
+		<!-- UI Configuration -->
+		<UI Id="UserInterface">
+			<Property Id="WIXUI_INSTALLDIR" Value="TARGETDIR" />
+			<Property Id="WixUI_Mode" Value="Custom" />
+			<!-- Text Setup -->
+			<TextStyle Id="WixUI_Font_Normal" FaceName="Tahoma" Size="8" />
+			<TextStyle Id="WixUI_Font_Bigger" FaceName="Tahoma" Size="9" Bold="yes" />
+			<TextStyle Id="WixUI_Font_Title" FaceName="Tahoma" Size="9" Bold="yes" />
+			<Property Id="DefaultUIFont" Value="WixUI_Font_Normal" />
+			<!-- Dialogs In Use -->
+			<DialogRef Id="ProgressDlg" />
+			<DialogRef Id="ErrorDlg" />
+			<DialogRef Id="FilesInUse" />
+			<DialogRef Id="FatalError" />
+			<DialogRef Id="UserExit" />
+			<!-- Type of Dialog to show -->
+			<Publish Dialog="ExitDialog" Control="Finish" Event="EndDialog" Value="Return" Order="999">1</Publish>
+			<Publish Dialog="WelcomeDlg" Control="Next" Event="EndDialog" Value="Return" Order="2"></Publish>
+		</UI>
+
+		<!-- UI Type -->
+		<UIRef Id="WixUI_Common" />
+
+		<!-- Icon Values -->
+		<Property Id="ARPPRODUCTICON" Value="OBSSwitcherIcon.ico" />
+		<Icon Id="OBSSwitcherIcon.ico" SourceFile="$(var.OBSSwitcher.ProjectDir)\IconFiles\OBSSwitcherIcon.ico"/>
 	</Product>
 </Wix>
