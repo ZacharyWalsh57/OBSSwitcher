@@ -393,3 +393,5 @@ FodyWeavers.xsd
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+OBSSwitcher/obj/Debug/TempPE/Properties.AssemblyInfo.cs.dll

@@ -164,9 +164,9 @@ namespace OBSSwitcher
                 Console.SetOut(ConsoleWriter);
                 
                 // Build the app title version string here
-                string AppVersion = Assembly.GetEntryAssembly()?.GetName().Version.ToString();
+                string AppVersion = Assembly.GetEntryAssembly()?.GetName().Version.ToString(3);
                 string AppTitleMsg = $"OBS Switcher Version {AppVersion}";
-                int PaddingCount = ((47 - AppTitleMsg.Length) / 2) - 2;
+                int PaddingCount = ((47 - AppTitleMsg.Length) / 2);
                 AppTitleMsg = "| " + new string(' ', PaddingCount) + AppTitleMsg + new string(' ', 7) + " |";
 
                 // Title info here.
