@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -161,13 +162,19 @@ namespace OBSSwitcher
                 // Set Console Output here.
                 Console.Clear();
                 Console.SetOut(ConsoleWriter);
+                
+                // Build the app title version string here
+                string AppVersion = Assembly.GetEntryAssembly()?.GetName().Version.ToString();
+                string AppTitleMsg = $"OBS Switcher Version {AppVersion}";
+                int PaddingCount = ((47 - AppTitleMsg.Length) / 2) - 2;
+                AppTitleMsg = "| " + new string(' ', PaddingCount) + AppTitleMsg + new string(' ', 7) + " |";
 
                 // Title info here.
                 Console.Clear();
                 Console.WriteLine("+---------------------------------------------+");
                 Console.WriteLine("|                                             |");
-                Console.WriteLine("|          OBS Switcher Version 1.4.3         |");
-                Console.WriteLine("|~Created And Maintained By Zack Walsh - 2021~|");
+                Console.WriteLine(AppTitleMsg);
+                Console.WriteLine("|~Created And Maintained By Zack Walsh - 2026~|");
                 Console.WriteLine("|                                             |");
                 Console.WriteLine("|---------------------------------------------|");
                 Console.WriteLine("|    =Configuration Info For This Session=    |");
